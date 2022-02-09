@@ -1,11 +1,10 @@
 import 'package:args/command_runner.dart';
-import '../config/meta.g.dart';
+import '../config/meta.dart';
+import '../core/manager.dart';
 import '../utils/console.dart';
 
 class VersionCommand extends Command<void> {
-  VersionCommand() {
-    argParser.addFlag('json', negatable: false);
-  }
+  VersionCommand();
 
   @override
   final String name = 'version';
@@ -18,13 +17,30 @@ class VersionCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    if (argResults!['json'] as bool) {
+    if (AppManager.isJsonMode) {
       printJson(<dynamic, dynamic>{
-        'version': GeneratedAppMeta.version,
+        'version': 'v${GeneratedAppMeta.version}',
+        'patreon': AppMeta.patreon,
+        'github': AppMeta.github,
       });
       return;
     }
 
-    print('v${GeneratedAppMeta.version}');
+    printTitle('Information');
+    print(DyeUtils.dyeKeyValue('Version', 'v${GeneratedAppMeta.version}'));
+    print(
+      DyeUtils.dyeKeyValue(
+        'Patreon',
+        AppMeta.patreon,
+        additionalValueStyles: 'underline',
+      ),
+    );
+    print(
+      DyeUtils.dyeKeyValue(
+        'GitHub',
+        AppMeta.github,
+        additionalValueStyles: 'underline',
+      ),
+    );
   }
 }

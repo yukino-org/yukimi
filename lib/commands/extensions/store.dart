@@ -5,25 +5,27 @@ import '../../core/extensions.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
 
-class InstalledExtensionsCommand extends Command<void> {
-  InstalledExtensionsCommand();
+class ExtensionsStoreCommand extends Command<void> {
+  ExtensionsStoreCommand();
 
   @override
-  final String name = 'installed';
+  final String name = 'store';
 
   @override
-  final List<String> aliases = <String>['list'];
+  final List<String> aliases = <String>['all'];
 
   @override
-  final String description = 'Display all the installed extensions.';
+  final String description =
+      'Display all the available extensions on the store.';
 
   @override
   Future<void> run() async {
     if (AppManager.isJsonMode) {
       printJson(
-        ExtensionsManager.repository.extensions.values
-            .map((final EStoreMetadata x) => x.toJson())
-            .toList(),
+        ExtensionsManager.repository.store.extensions.map(
+          (final String i, final EStoreMetadata x) =>
+              MapEntry<String, Map<dynamic, dynamic>>(i, x.toJson()),
+        ),
       );
       return;
     }
@@ -32,7 +34,7 @@ class InstalledExtensionsCommand extends Command<void> {
 
     int i = 1;
     for (final EStoreMetadata x
-        in ExtensionsManager.repository.extensions.values) {
+        in ExtensionsManager.repository.store.extensions.values) {
       print('$i. ${dyeStoreMetadata(x)}');
 
       i++;

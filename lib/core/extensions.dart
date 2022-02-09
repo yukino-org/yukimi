@@ -6,6 +6,18 @@ import './settings.dart';
 import '../config/constants.dart';
 import '../config/paths.dart';
 
+Map<String, String>? _storeIdNameMap;
+
+extension ExtensionsUtils on ERepository {
+  Map<String, String> get storeNameIdMap =>
+      _storeIdNameMap ??= store.extensions.map(
+        (final String i, final EStoreMetadata x) => MapEntry<String, String>(
+          x.metadata.name.toLowerCase(),
+          x.metadata.id,
+        ),
+      );
+}
+
 abstract class ExtensionsManager {
   static late final ERepository repository;
 
@@ -30,5 +42,12 @@ abstract class ExtensionsManager {
     );
 
     await repository.initialize();
+  }
+
+  static Future<T> getExtractor<T>(final EStoreMetadata metadata) async {
+    final ERuntimeInstance runtime = await ERuntimeManager.create();
+    await runtime.loadScriptCode('', appendDefinitions: true);
+    await runtime.loadByteCode((metadata.metadata.source as EBase64DS).data);
+    return runtime.getExtractor<T>();
   }
 }

@@ -1,12 +1,11 @@
 import 'package:args/command_runner.dart';
+import '../core/manager.dart';
 import '../core/settings.dart';
 import '../utils/console.dart';
 
 class SettingsCommand extends Command<void> {
   SettingsCommand() {
-    argParser
-      ..addFlag('json', negatable: false)
-      ..addFlag('ignoreSSLCertificate', defaultsTo: null);
+    argParser.addFlag('ignoreSSLCertificate', defaultsTo: null);
   }
 
   @override
@@ -20,7 +19,7 @@ class SettingsCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    if (argResults!['json'] as bool) {
+    if (AppManager.isJsonMode) {
       printJson(AppSettings.settings.toJson());
       return;
     }

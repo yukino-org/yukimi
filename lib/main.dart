@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import './core/manager.dart';
+import './utils/command_exception.dart';
+import './utils/console.dart';
 
 Future<void> main(final List<String> args) async {
   await AppManager.initialize();
@@ -9,11 +11,18 @@ Future<void> main(final List<String> args) async {
     await AppManager.execute(args);
     exitCode = 0;
   } on UsageException catch (err) {
-    print(err);
     exitCode = 1;
-  } catch (err) {
+    printError(err.message);
+    print(err.usage);
+  } catch (err, stack) {
     exitCode = 1;
-    rethrow;
+    if (AppManager.isJsonMode) {
+      printErrorJson(err);
+    } else if (err is CRTException) {
+      printError(err);
+    } else {
+      printError(err, stack);
+    }
   }
 
   exit(exitCode);
