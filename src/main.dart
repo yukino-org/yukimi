@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import './core/manager.dart';
-import './utils/command_exception.dart';
-import './utils/console.dart';
+import 'core/manager.dart';
+import 'utils/command_exception.dart';
+import 'utils/console.dart';
 
 Future<void> main(final List<String> args) async {
   await AppManager.initialize();
@@ -25,5 +25,5 @@ Future<void> main(final List<String> args) async {
     }
   }
 
-  exit(exitCode);
+  await AppManager.quit();
 }

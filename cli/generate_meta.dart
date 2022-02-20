@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import './utils.dart';
+import 'utils.dart';
 
 final String pubspecPath = path.join(Paths.rootDir, 'pubspec.yaml');
 final String metaPath = path.join(Paths.libDir, 'config/meta.g.dart');

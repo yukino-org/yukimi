@@ -3,6 +3,7 @@ import 'package:colorize/colorize.dart';
 import 'package:utilx/utilities/utils.dart';
 import '../config/constants.dart';
 import '../config/meta.g.dart';
+import '../core/manager.dart';
 
 abstract class Symbols {
   static const String tick = '✓';
@@ -22,6 +23,8 @@ class Dye {
   late final Colorize _colorize = Colorize(text);
 
   Dye apply(final String styles) {
+    if (AppManager.globalArgResults?['color'] == false) return this;
+
     for (final String x in styles.split('/')) {
       _colorize.apply(parseStyle(x.trim()));
     }
@@ -70,7 +73,7 @@ void printHeading(final String heading) =>
 void printTitle([final String? title]) {
   print(
     Dye.dye(
-      '${Constants.appName} v${GeneratedAppMeta.version}\n',
+      '${Constants.appName} v${GeneratedAppMeta.version}',
       'darkGray',
     ),
   );

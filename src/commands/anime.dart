@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
-import './anime/info.dart';
-import './anime/search.dart';
+import 'anime/info.dart';
+import 'anime/search.dart';
 
 class AnimeCommand extends Command<void> {
   AnimeCommand() {

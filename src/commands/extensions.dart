@@ -1,8 +1,8 @@
 import 'package:args/command_runner.dart';
-import './extensions/install.dart';
-import './extensions/installed.dart';
-import './extensions/store.dart';
-import './extensions/uninstall.dart';
+import 'extensions/install.dart';
+import 'extensions/installed.dart';
+import 'extensions/store.dart';
+import 'extensions/uninstall.dart';
 
 class ExtensionsCommand extends Command<void> {
   ExtensionsCommand() {

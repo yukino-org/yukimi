@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:extensions/metadata.dart';
-import './_utils.dart';
 import '../../core/extensions.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
+import '_utils.dart';
 
 class ExtensionsStoreCommand extends Command<void> {
   ExtensionsStoreCommand();
@@ -23,7 +23,7 @@ class ExtensionsStoreCommand extends Command<void> {
     if (AppManager.isJsonMode) {
       printJson(
         ExtensionsManager.repository.store.extensions.map(
-          (final String i, final EStoreMetadata x) =>
+          (final String i, final EMetadata x) =>
               MapEntry<String, Map<dynamic, dynamic>>(i, x.toJson()),
         ),
       );
@@ -33,7 +33,7 @@ class ExtensionsStoreCommand extends Command<void> {
     printTitle('Available Extensions');
 
     int i = 1;
-    for (final EStoreMetadata x
+    for (final EMetadata x
         in ExtensionsManager.repository.store.extensions.values) {
       print('$i. ${dyeStoreMetadata(x)}');
 

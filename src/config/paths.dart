@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import './constants.dart';
+import 'constants.dart';
 
 abstract class Paths {
   static late final String baseDataDir;

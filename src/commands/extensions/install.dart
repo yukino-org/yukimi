@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:extensions/metadata.dart';
-import './_utils.dart';
 import '../../core/extensions.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
+import '_utils.dart';
 
 class InstallExtensionsCommand extends Command<void> {
   InstallExtensionsCommand();
@@ -22,7 +22,7 @@ class InstallExtensionsCommand extends Command<void> {
     final List<String> restArgs =
         argResults!.rest.map((final String x) => x.toLowerCase()).toList();
 
-    final List<EStoreMetadata> installed = <EStoreMetadata>[];
+    final List<EMetadata> installed = <EMetadata>[];
 
     for (final String x in restArgs) {
       final String? id = ExtensionsManager.repository.storeNameIdMap[x];
@@ -30,14 +30,13 @@ class InstallExtensionsCommand extends Command<void> {
         await ExtensionsManager.repository
             .install(ExtensionsManager.repository.store.extensions[id]!);
 
-        installed.add(ExtensionsManager.repository.extensions[id]!);
+        installed.add(ExtensionsManager.repository.installed[id]!);
       }
     }
 
     if (AppManager.isJsonMode) {
       printJson(<dynamic, dynamic>{
-        'installed':
-            installed.map((final EStoreMetadata x) => x.toJson()).toList(),
+        'installed': installed.map((final EMetadata x) => x.toJson()).toList(),
       });
       return;
     }
@@ -45,7 +44,7 @@ class InstallExtensionsCommand extends Command<void> {
     printTitle('Installed');
 
     int i = 1;
-    for (final EStoreMetadata x in installed) {
+    for (final EMetadata x in installed) {
       print('$i. ${dyeStoreMetadata(x)}');
 
       i++;

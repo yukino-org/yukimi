@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:extensions/metadata.dart';
-import './_utils.dart';
 import '../../core/extensions.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
+import '_utils.dart';
 
 class InstalledExtensionsCommand extends Command<void> {
   InstalledExtensionsCommand();
@@ -21,18 +21,17 @@ class InstalledExtensionsCommand extends Command<void> {
   Future<void> run() async {
     if (AppManager.isJsonMode) {
       printJson(
-        ExtensionsManager.repository.extensions.values
-            .map((final EStoreMetadata x) => x.toJson())
+        ExtensionsManager.repository.installed.values
+            .map((final EMetadata x) => x.toJson())
             .toList(),
       );
       return;
     }
 
-    printTitle('Available Extensions');
+    printTitle('Installed Extensions');
 
     int i = 1;
-    for (final EStoreMetadata x
-        in ExtensionsManager.repository.extensions.values) {
+    for (final EMetadata x in ExtensionsManager.repository.installed.values) {
       print('$i. ${dyeStoreMetadata(x)}');
 
       i++;

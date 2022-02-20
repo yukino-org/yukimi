@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:extensions/metadata.dart';
-import './_utils.dart';
 import '../../core/extensions.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
+import '_utils.dart';
 
 class UninstallExtensionsCommand extends Command<void> {
   UninstallExtensionsCommand();
@@ -22,12 +22,12 @@ class UninstallExtensionsCommand extends Command<void> {
     final List<String> restArgs =
         argResults!.rest.map((final String x) => x.toLowerCase()).toList();
 
-    final List<EStoreMetadata> uninstalled = <EStoreMetadata>[];
+    final List<EMetadata> uninstalled = <EMetadata>[];
 
     for (final String x in restArgs) {
       final String? id = ExtensionsManager.repository.storeNameIdMap[x];
       if (id != null) {
-        final EStoreMetadata storeMetadata =
+        final EMetadata storeMetadata =
             ExtensionsManager.repository.store.extensions[id]!;
 
         await ExtensionsManager.repository.uninstall(storeMetadata);
@@ -39,7 +39,7 @@ class UninstallExtensionsCommand extends Command<void> {
     if (AppManager.isJsonMode) {
       printJson(<dynamic, dynamic>{
         'uninstalled':
-            uninstalled.map((final EStoreMetadata x) => x.toJson()).toList(),
+            uninstalled.map((final EMetadata x) => x.toJson()).toList(),
       });
       return;
     }
@@ -47,7 +47,7 @@ class UninstallExtensionsCommand extends Command<void> {
     printTitle('Uninstalled');
 
     int i = 1;
-    for (final EStoreMetadata x in uninstalled) {
+    for (final EMetadata x in uninstalled) {
       print('$i. ${dyeStoreMetadata(x)}');
       i++;
     }

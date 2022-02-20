@@ -2,8 +2,8 @@ import 'package:args/args.dart';
 import 'package:extensions/extensions.dart';
 import 'package:extensions/metadata.dart';
 import 'package:utilx/utilities/locale.dart';
-import '../../core/extensions.dart';
-import '../../utils/command_exception.dart';
+import '../core/extensions.dart';
+import 'command_exception.dart';
 
 class ExtensionRestArg<T> {
   const ExtensionRestArg({
@@ -13,7 +13,7 @@ class ExtensionRestArg<T> {
     required this.restArgs,
   });
 
-  final EStoreMetadata storeMetadata;
+  final EMetadata storeMetadata;
   final T extractor;
   final Locale locale;
   final List<String> restArgs;
@@ -21,8 +21,8 @@ class ExtensionRestArg<T> {
   String get terms => restArgs.join(' ');
 
   static void addOptions(final ArgParser argParser) => argParser
-    ..addOption('locale', aliases: <String>['language', 'lang'])
-    ..addOption('extension', aliases: <String>['ext']);
+    ..addOption('locale', abbr: 'l', aliases: <String>['language', 'lang'])
+    ..addOption('extension', abbr: 'e', aliases: <String>['ext']);
 
   static Future<ExtensionRestArg<T>> parse<T>(
     final ArgResults argResults,
@@ -47,15 +47,13 @@ class ExtensionRestArg<T> {
 
     final String? id =
         ExtensionsManager.repository.storeNameIdMap[extensionName];
-    if (id == null) throw CRTException('Invalid extension: $id');
+    if (id == null) throw CRTException('Invalid extension: $extensionName');
 
-    if (!ExtensionsManager.repository.extensions.containsKey(id)) {
+    if (!ExtensionsManager.repository.installed.containsKey(id)) {
       throw CRTException('Missing extension: $extensionName');
     }
 
-    final EStoreMetadata storeMetadata =
-        ExtensionsManager.repository.extensions[id]!;
-
+    final EMetadata storeMetadata = ExtensionsManager.repository.installed[id]!;
     final T extractor = await ExtensionsManager.getExtractor<T>(storeMetadata);
 
     switch (eType) {
