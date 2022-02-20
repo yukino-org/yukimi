@@ -28,7 +28,7 @@ jobs:
 
             - name: 🚧 Do prerequisites
               run: |
-                  echo -
+                  dart pub get
 
             - name: 🩺 Check code format
               run: dart format --output=none --set-exit-if-changed .
