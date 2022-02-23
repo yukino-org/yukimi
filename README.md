@@ -1,13 +1,16 @@
 <br />
 
 <p align="center">
-    <img src="https://github.com/yukino-app/yukino/raw/next/media/large.png" width="50%">
+    <img src="https://github.com/yukino-org/media/blob/main/images/subbanners/gh-yukimi-banner.png?raw=true" width="70%">
 </p>
 
-# Yukino CLI
+# Yukimi
 
-☄ Command-line interface of Yukino.
+☄ Anime/Manga command-line interface backed up by Tenka.
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Code Analysis](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml)
 
 ## License
 
-[GPL-3.0](./LICENSE)
+[![AGPL-3.0](https://github.com/yukino-org/media/blob/main/images/license-logo/agplv3.png?raw=true)](./LICENSE)

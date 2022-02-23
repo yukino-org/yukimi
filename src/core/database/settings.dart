@@ -5,14 +5,14 @@ import '../../utils/atomic_file.dart';
 
 class AppSettings {
   AppSettings({
-    required this.ignoreSSLCertificate,
-    required this.downloadDir,
+    this.ignoreSSLCertificate = false,
+    this.preferredVideoQuality,
+    this.fallbackVideoQuality,
+    this.animeDestination,
+    this.mangaDestination,
   });
 
-  factory AppSettings.defaultSettings() => AppSettings(
-        ignoreSSLCertificate: false,
-        downloadDir: null,
-      );
+  factory AppSettings.defaultSettings() => AppSettings();
 
   factory AppSettings.fromJson(final Map<dynamic, dynamic> json) {
     final AppSettings d = AppSettings.defaultSettings();
@@ -20,16 +20,29 @@ class AppSettings {
     return AppSettings(
       ignoreSSLCertificate:
           json['ignoreSSLCertificate'] as bool? ?? d.ignoreSSLCertificate,
-      downloadDir: json['downloadDir'] as String? ?? d.downloadDir,
+      preferredVideoQuality:
+          json['preferredVideoQuality'] as String? ?? d.preferredVideoQuality,
+      fallbackVideoQuality:
+          json['fallbackVideoQuality'] as String? ?? d.fallbackVideoQuality,
+      animeDestination:
+          json['animeDestination'] as String? ?? d.animeDestination,
+      mangaDestination:
+          json['mangaDestination'] as String? ?? d.mangaDestination,
     );
   }
 
   bool ignoreSSLCertificate;
-  String? downloadDir;
+  String? preferredVideoQuality;
+  String? fallbackVideoQuality;
+  String? animeDestination;
+  String? mangaDestination;
 
   Map<dynamic, dynamic> toJson() => <dynamic, dynamic>{
         'ignoreSSLCertificate': ignoreSSLCertificate,
-        'downloadDir': downloadDir,
+        'preferredVideoQuality': preferredVideoQuality,
+        'fallbackVideoQuality': fallbackVideoQuality,
+        'animeDestination': animeDestination,
+        'mangaDestination': mangaDestination,
       };
 
   static late AppSettings settings;

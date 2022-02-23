@@ -2,15 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import '../commands/anime.dart';
-import '../commands/extensions.dart';
-import '../commands/settings.dart';
-import '../commands/terminal.dart';
-import '../commands/version.dart';
-import '../config/constants.dart';
 import '../config/paths.dart';
 import '../utils/command_exception.dart';
 import '../utils/console.dart';
+import 'commander.dart';
 import 'database/settings.dart';
 import 'extensions.dart';
 
@@ -36,16 +31,7 @@ abstract class AppManager {
     await AppSettings.initialize();
     await ExtensionsManager.initialize();
 
-    runner = CommandRunner<void>(Constants.appId, Constants.description);
-    runner.argParser
-      ..addFlag('json', negatable: false)
-      ..addFlag('color', defaultsTo: true);
-    runner
-      ..addCommand(AnimeCommand())
-      ..addCommand(ExtensionsCommand())
-      ..addCommand(SettingsCommand())
-      ..addCommand(TerminalCommand())
-      ..addCommand(VersionCommand());
+    runner = AppCommander.get();
 
     sigintSubscription =
         ProcessSignal.sigint.watch().listen((final ProcessSignal _) {
