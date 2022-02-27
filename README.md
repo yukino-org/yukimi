@@ -1,7 +1,5 @@
-<br />
-
 <p align="center">
-    <img src="https://github.com/yukino-org/media/blob/main/images/subbanners/gh-yukimi-banner.png?raw=true" width="70%">
+    <img src="https://github.com/yukino-org/media/blob/main/images/subbanners/gh-yukimi-banner.png?raw=true">
 </p>
 
 # Yukimi

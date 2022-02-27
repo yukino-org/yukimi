@@ -1,12 +1,12 @@
 import 'package:args/command_runner.dart';
-import 'package:extensions/metadata.dart';
-import '../../core/extensions.dart';
+import 'package:tenka/tenka.dart';
 import '../../core/manager.dart';
+import '../../core/tenka.dart';
 import '../../utils/console.dart';
 import '_utils.dart';
 
-class ExtensionsStoreCommand extends Command<void> {
-  ExtensionsStoreCommand();
+class TenkaStoreCommand extends Command<void> {
+  TenkaStoreCommand();
 
   @override
   final String name = 'store';
@@ -22,20 +22,20 @@ class ExtensionsStoreCommand extends Command<void> {
   Future<void> run() async {
     if (AppManager.isJsonMode) {
       printJson(
-        ExtensionsManager.repository.store.extensions.map(
-          (final String i, final EMetadata x) =>
+        TenkaManager.repository.store.modules.map(
+          (final String i, final TenkaMetadata x) =>
               MapEntry<String, Map<dynamic, dynamic>>(i, x.toJson()),
         ),
       );
       return;
     }
 
-    printTitle('Available Extensions');
+    printTitle('Available Tenka Modules');
 
     int i = 1;
-    for (final EMetadata x
-        in ExtensionsManager.repository.store.extensions.values) {
-      print('$i. ${dyeStoreMetadata(x)}');
+    for (final TenkaMetadata x
+        in TenkaManager.repository.store.modules.values) {
+      print('$i. ${dyeTenkaMetadata(x)}');
 
       i++;
     }

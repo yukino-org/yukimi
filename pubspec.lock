@@ -89,9 +89,9 @@ packages:
     dependency: "direct dev"
     description:
       path: "."
-      ref: devx
-      resolved-ref: "32c7eb1c3036c166f9e795bba5eef09d07f6b687"
-      url: "git://github.com/yukino-app/packages.git"
+      ref: dart_devx
+      resolved-ref: "0e184b5a87e228d8920e77b483d35861d2f7f2d3"
+      url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
   dl:
@@ -108,33 +108,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.1"
-  extensions:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: extensions
-      resolved-ref: "22d1a47638fe113c68704f80c536ac6a7e401985"
-      url: "git://github.com/yukino-app/packages.git"
-    source: git
-    version: "1.0.5"
-  extensions_metadata:
-    dependency: transitive
-    description:
-      path: "."
-      ref: extensions_metadata
-      resolved-ref: "72187a44ffa0db4e7217c95fe2591831f4240a84"
-      url: "git://github.com/yukino-app/packages.git"
-    source: git
-    version: "0.0.0"
-  extensions_runtime:
-    dependency: transitive
-    description:
-      path: "."
-      ref: extensions_runtime
-      resolved-ref: acb44cf948ac06f4366e02e1b30d6e347888e401
-      url: "git://github.com/yukino-app/packages.git"
-    source: git
-    version: "0.0.0"
   fuzzy:
     dependency: transitive
     description:
@@ -212,6 +185,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  mime_type:
+    dependency: "direct main"
+    description:
+      name: mime_type
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   path:
     dependency: "direct main"
     description:
@@ -296,6 +276,24 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  tenka:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: dart_tenka
+      resolved-ref: "2bee13eb9823223eecc0731edd3273c148b41690"
+      url: "git://github.com/yukino-org/packages.git"
+    source: git
+    version: "1.0.5"
+  tenka_runtime:
+    dependency: transitive
+    description:
+      path: "."
+      ref: dart_tenka_runtime
+      resolved-ref: c455964f4b9483835e202915b4d26ac9908e456a
+      url: "git://github.com/yukino-org/packages.git"
+    source: git
+    version: "0.0.0"
   term_glyph:
     dependency: transitive
     description:
@@ -314,19 +312,19 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: utilx
-      resolved-ref: fa10d947ad86c504ff63c350dfa91523ff271780
-      url: "git://github.com/yukino-app/packages.git"
+      ref: dart_utilx
+      resolved-ref: f85ccc1bfde927b6f9aa09746d1424679abfec4c
+      url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
   utilx_desktop:
     dependency: "direct main"
     description:
       path: "."
-      ref: utilx_desktop
-      resolved-ref: f9e07658ccd8894938f64b016c2a4e925ddfd34d
-      url: "git://github.com/yukino-app/packages.git"
+      ref: dart_utilx_desktop
+      resolved-ref: "4a4fa86d32017474809d69bb8d9b9c428d425bdc"
+      url: "git://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
 sdks:
-  dart: ">=2.16.0-144.0.dev <3.0.0"
+  dart: ">=2.16.0-100.0.dev <3.0.0"

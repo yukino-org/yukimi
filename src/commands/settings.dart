@@ -9,9 +9,12 @@ class SettingsCommand extends Command<void> {
       ..addFlag('default', aliases: <String>['reset'])
       ..addFlag('ignoreSSLCertificate', defaultsTo: null)
       ..addOption(
-        'downloadDir',
-        abbr: 'd',
-        aliases: <String>['dDir'],
+        'animeDestination',
+        aliases: <String>['animeDir'],
+      )
+      ..addOption(
+        'mangaDestination',
+        aliases: <String>['mangaDir'],
       );
   }
 
@@ -44,8 +47,15 @@ class SettingsCommand extends Command<void> {
       changes++;
     }
 
-    if (argResults!['downloadDir'] is String) {
-      AppSettings.settings.downloadDir = argResults!['downloadDir'] as String;
+    if (argResults!['animeDestination'] is String) {
+      AppSettings.settings.animeDestination =
+          argResults!['animeDestination'] as String;
+      changes++;
+    }
+
+    if (argResults!['mangaDestination'] is String) {
+      AppSettings.settings.mangaDestination =
+          argResults!['mangaDestination'] as String;
       changes++;
     }
 
@@ -58,7 +68,10 @@ class SettingsCommand extends Command<void> {
     final Map<String, String> mapped = <String, String>{
       'Ignore SSL Certificate':
           AppSettings.settings.ignoreSSLCertificate.toString(),
-      'DownloadDir': AppSettings.settings.downloadDir ?? '-',
+      'Anime Download Destination':
+          AppSettings.settings.animeDestination ?? '-',
+      'Manga Download Destination':
+          AppSettings.settings.mangaDestination ?? '-',
     };
 
     mapped.forEach(

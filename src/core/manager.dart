@@ -6,8 +6,9 @@ import '../config/paths.dart';
 import '../utils/command_exception.dart';
 import '../utils/console.dart';
 import 'commander.dart';
+import 'database/cache.dart';
 import 'database/settings.dart';
-import 'extensions.dart';
+import 'tenka.dart';
 
 enum AppMode {
   json,
@@ -28,8 +29,9 @@ abstract class AppManager {
     initialized = true;
 
     await Paths.initialize();
+    await Cache.initialize();
     await AppSettings.initialize();
-    await ExtensionsManager.initialize();
+    await TenkaManager.initialize();
 
     runner = AppCommander.get();
 
@@ -65,9 +67,7 @@ abstract class AppManager {
     if (disposed) return;
     disposed = true;
 
-    print('dispose start');
-    await ExtensionsManager.dispose();
-    print('dispose end');
+    await TenkaManager.dispose();
   }
 
   static Future<void> quit() async {

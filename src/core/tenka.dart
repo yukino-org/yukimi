@@ -1,6 +1,4 @@
-import 'package:extensions/extensions.dart';
-import 'package:extensions/metadata.dart';
-import 'package:extensions/runtime.dart';
+import 'package:tenka/tenka.dart';
 import 'package:utilx_desktop/utilities/webview/providers/puppeteer/provider.dart';
 import '../config/constants.dart';
 import '../config/paths.dart';
@@ -8,23 +6,23 @@ import 'database/settings.dart';
 
 Map<String, String>? _storeIdNameMap;
 
-extension ExtensionsUtils on ERepository {
+extension TenkaRepositoryUtils on TenkaRepository {
   Map<String, String> get storeNameIdMap =>
-      _storeIdNameMap ??= store.extensions.map(
-        (final String i, final EMetadata x) => MapEntry<String, String>(
+      _storeIdNameMap ??= store.modules.map(
+        (final String i, final TenkaMetadata x) => MapEntry<String, String>(
           x.name.toLowerCase(),
           x.id,
         ),
       );
 }
 
-abstract class ExtensionsManager {
-  static late final ERepository repository;
+abstract class TenkaManager {
+  static late final TenkaRepository repository;
 
   static Future<void> initialize() async {
-    await EInternals.initialize(
-      runtime: ERuntimeOptions(
-        http: HttpClientOptions(
+    await TenkaInternals.initialize(
+      runtime: TenkaRuntimeOptions(
+        http: TenkaRuntimeHttpClientOptions(
           ignoreSSLCertificate: AppSettings.settings.ignoreSSLCertificate,
         ),
         webview: WebviewManagerInitializeOptions(
@@ -34,22 +32,22 @@ abstract class ExtensionsManager {
       ),
     );
 
-    repository = ERepository(
-      resolver: const EStoreURLResolver(deployMode: Constants.storeRef),
-      baseDir: Paths.extensionsDir,
+    repository = TenkaRepository(
+      resolver: const TenkaStoreURLResolver(deployMode: Constants.storeRef),
+      baseDir: Paths.tenkaModulesDir,
     );
 
     await repository.initialize();
   }
 
-  static Future<T> getExtractor<T>(final EMetadata metadata) async {
-    final ERuntimeInstance runtime = await ERuntimeManager.create();
+  static Future<T> getExtractor<T>(final TenkaMetadata metadata) async {
+    final TenkaRuntimeInstance runtime = await TenkaRuntimeManager.create();
     await runtime.loadScriptCode('', appendDefinitions: true);
-    await runtime.loadByteCode((metadata.source as EBase64DS).data);
+    await runtime.loadByteCode((metadata.source as TenkaBase64DS).data);
     return runtime.getExtractor<T>();
   }
 
   static Future<void> dispose() async {
-    await EInternals.dispose();
+    await TenkaInternals.dispose();
   }
 }

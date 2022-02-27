@@ -4,7 +4,7 @@ import '../../config/paths.dart';
 import '../../utils/atomic_file.dart';
 
 class AppSettings {
-  AppSettings({
+  AppSettings._({
     this.ignoreSSLCertificate = false,
     this.preferredVideoQuality,
     this.fallbackVideoQuality,
@@ -12,12 +12,12 @@ class AppSettings {
     this.mangaDestination,
   });
 
-  factory AppSettings.defaultSettings() => AppSettings();
+  factory AppSettings.defaultSettings() => AppSettings._();
 
   factory AppSettings.fromJson(final Map<dynamic, dynamic> json) {
     final AppSettings d = AppSettings.defaultSettings();
 
-    return AppSettings(
+    return AppSettings._(
       ignoreSSLCertificate:
           json['ignoreSSLCertificate'] as bool? ?? d.ignoreSSLCertificate,
       preferredVideoQuality:

@@ -18,10 +18,9 @@ abstract class Paths {
   }
 
   static String get chromiumDataDir => path.join(dataDir, 'chromium');
-
   static String get settingsFilePath => path.join(baseDataDir, 'settings.json');
-
-  static String get extensionsDir => path.join(baseDataDir, 'extensions');
+  static String get cacheFilePath => path.join(baseDataDir, 'cache.json');
+  static String get tenkaModulesDir => path.join(baseDataDir, 'tenka_modules');
 
   static Future<String> _getBaseAppDataDir() async {
     if (Platform.isWindows) {

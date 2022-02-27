@@ -1,13 +1,12 @@
 import 'package:args/command_runner.dart';
-import 'package:extensions/extensions.dart';
-import 'package:extensions/metadata.dart';
+import 'package:tenka/tenka.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
-import '../../utils/extractor_args.dart';
+import '../../utils/tenka_module_args.dart';
 
 class AnimeSearchCommand extends Command<void> {
   AnimeSearchCommand() {
-    ExtensionRestArg.addOptions(argParser);
+    TenkaModuleArgs.addOptions(argParser);
   }
 
   @override
@@ -21,8 +20,8 @@ class AnimeSearchCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final ExtensionRestArg<AnimeExtractor> eRestArg =
-        await ExtensionRestArg.parse(argResults!, EType.anime);
+    final TenkaModuleArgs<AnimeExtractor> eRestArg =
+        await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
     final List<SearchInfo> results =
         await eRestArg.extractor.search(eRestArg.terms, eRestArg.locale);

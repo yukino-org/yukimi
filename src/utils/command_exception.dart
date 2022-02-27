@@ -4,6 +4,12 @@ class CRTException implements Exception {
   factory CRTException.fromJson(final Map<dynamic, dynamic> json) =>
       CRTException(json['error'] as String);
 
+  factory CRTException.missingOption(final String option) =>
+      CRTException('Missing option: $option');
+
+  factory CRTException.invalidOption(final String option) =>
+      CRTException('Missing option: $option');
+
   final String error;
 
   Map<dynamic, dynamic> toJson() => <dynamic, dynamic>{
