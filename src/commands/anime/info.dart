@@ -59,7 +59,7 @@ class AnimeInfoCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<AnimeExtractor> eRestArg =
+    final TenkaModuleArgs<AnimeExtractor> moduleArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
     final ContentRange? range = argResults!.wasParsed('episodes')
@@ -69,13 +69,13 @@ class AnimeInfoCommand extends Command<void> {
         : null;
 
     final AnimeInfo? cached = argResults!['no-cache'] == false
-        ? Cache.cache.getAnime(eRestArg.metadata.id, eRestArg.terms)
+        ? Cache.cache.getAnime(moduleArgs.metadata.id, moduleArgs.terms)
         : null;
 
     final AnimeInfo info = cached ??
-        await eRestArg.extractor.getInfo(eRestArg.terms, eRestArg.locale);
+        await moduleArgs.extractor.getInfo(moduleArgs.terms, moduleArgs.locale);
 
-    await Cache.cache.saveAnime(eRestArg.metadata.id, info);
+    await Cache.cache.saveAnime(moduleArgs.metadata.id, info);
 
     if (AppManager.isJsonMode) {
       printJson(info.toJson());
@@ -175,7 +175,8 @@ class AnimeInfoCommand extends Command<void> {
         throw CRTException.invalidOption('quality ($parsedPreferredQuality)');
       }
 
-      final String fileNamePrefix = '[${eRestArg.metadata.name}] ${info.title}';
+      final String fileNamePrefix =
+          '[${moduleArgs.metadata.name}] ${info.title}';
 
       for (final EpisodeInfo x in selectedEpisodes) {
         if (isDownload) {
@@ -185,7 +186,7 @@ class AnimeInfoCommand extends Command<void> {
         }
 
         final List<EpisodeSource> episode =
-            await eRestArg.extractor.getSources(x);
+            await moduleArgs.extractor.getSources(x);
 
         final EpisodeSource? source = episode.firstWhereOrNull(
               (final EpisodeSource x) => x.quality.quality == preferredQuality,

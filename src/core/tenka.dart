@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:tenka/tenka.dart';
 import 'package:utilx_desktop/utilities/webview/providers/puppeteer/provider.dart';
 import '../config/constants.dart';
@@ -27,7 +28,10 @@ abstract class TenkaManager {
         ),
         webview: WebviewManagerInitializeOptions(
           PuppeteerProvider(),
-          WebviewProviderOptions(localChromiumPath: Paths.chromiumDataDir),
+          WebviewProviderOptions(
+            localChromiumPath: Paths.chromiumDataDir,
+            devMode: Platform.environment['YUKIMI_DEV_MODE'] == 'true',
+          ),
         ),
       ),
     );

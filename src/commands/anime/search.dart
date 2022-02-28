@@ -20,11 +20,11 @@ class AnimeSearchCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<AnimeExtractor> eRestArg =
+    final TenkaModuleArgs<AnimeExtractor> moduleArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
     final List<SearchInfo> results =
-        await eRestArg.extractor.search(eRestArg.terms, eRestArg.locale);
+        await moduleArgs.extractor.search(moduleArgs.terms, moduleArgs.locale);
 
     if (AppManager.isJsonMode) {
       printJson(results.map((final SearchInfo x) => x.toJson()).toList());
@@ -32,11 +32,11 @@ class AnimeSearchCommand extends Command<void> {
     }
 
     printTitle('Anime Search');
-    print(DyeUtils.dyeKeyValue('Terms', eRestArg.terms));
+    print(DyeUtils.dyeKeyValue('Terms', moduleArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',
-        eRestArg.locale.toPrettyString(appendCode: true),
+        moduleArgs.locale.toPrettyString(appendCode: true),
       ),
     );
     println();

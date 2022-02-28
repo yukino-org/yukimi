@@ -78,6 +78,10 @@ abstract class AppManager {
     exit(exitCode);
   }
 
+  static Future<void> waitForCriticals() async {
+    await Future.wait(pendingCriticals);
+  }
+
   static bool get isJsonMode => globalArgResults!['json'] as bool;
 
   static AppMode get mode {
@@ -86,9 +90,5 @@ abstract class AppManager {
     }
 
     return AppMode.normal;
-  }
-
-  static Future<void> waitForCriticals() async {
-    await Future.wait(pendingCriticals);
   }
 }
