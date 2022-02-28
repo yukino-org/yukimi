@@ -1,13 +1,16 @@
 import 'package:args/command_runner.dart';
 import '../core/database/settings.dart';
 import '../core/manager.dart';
+import '../utils/command_exception.dart';
 import '../utils/console.dart';
+import '../utils/path.dart';
 
 class SettingsCommand extends Command<void> {
   SettingsCommand() {
     argParser
       ..addFlag('default', aliases: <String>['reset'])
       ..addFlag('ignoreSSLCertificate', defaultsTo: null)
+      ..addFlag('setMpvPath', defaultsTo: null)
       ..addOption(
         'animeDestination',
         aliases: <String>['animeDir'],
@@ -15,7 +18,8 @@ class SettingsCommand extends Command<void> {
       ..addOption(
         'mangaDestination',
         aliases: <String>['mangaDir'],
-      );
+      )
+      ..addOption('customMpvPath');
   }
 
   @override
@@ -59,6 +63,27 @@ class SettingsCommand extends Command<void> {
       changes++;
     }
 
+    if (argResults!['setMpvPath'] is bool) {
+      if (argResults!['setMpvPath'] as bool) {
+        final String? mpvPath = await getMpvPath();
+        if (mpvPath == null) {
+          throw CRTException(
+            'Unable to find mpv path from environment variables.',
+          );
+        }
+
+        AppSettings.settings.mpvPath = mpvPath;
+      } else {
+        AppSettings.settings.mpvPath = null;
+      }
+      changes++;
+    }
+
+    if (argResults!['customMpvPath'] is String) {
+      AppSettings.settings.mpvPath = argResults!['customMpvPath'] as String;
+      changes++;
+    }
+
     if (changes > 0) {
       await AppSettings.save();
     }
@@ -72,6 +97,7 @@ class SettingsCommand extends Command<void> {
           AppSettings.settings.animeDestination ?? '-',
       'Manga Download Destination':
           AppSettings.settings.mangaDestination ?? '-',
+      'MPV Path': AppSettings.settings.mpvPath ?? '-',
     };
 
     mapped.forEach(

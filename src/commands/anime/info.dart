@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dl/dl.dart';
@@ -22,6 +21,13 @@ class AnimeInfoCommand extends Command<void> {
     TenkaModuleArgs.addOptions(argParser);
     argParser
       ..addFlag('no-cache', negatable: false)
+      ..addFlag('download', abbr: 'd')
+      ..addFlag(
+        'play',
+        abbr: 'p',
+        aliases: <String>['mpv'],
+        negatable: false,
+      )
       ..addMultiOption(
         'episodes',
         abbr: 'e',
@@ -29,7 +35,7 @@ class AnimeInfoCommand extends Command<void> {
       )
       ..addOption(
         'destination',
-        abbr: 'd',
+        abbr: 'o',
         aliases: <String>['outDir'],
       )
       ..addOption(
@@ -102,13 +108,13 @@ class AnimeInfoCommand extends Command<void> {
     println();
     printHeading('Episodes');
 
-    final List<EpisodeInfo> downloadEpisodes = <EpisodeInfo>[];
+    final List<EpisodeInfo> selectedEpisodes = <EpisodeInfo>[];
     for (final EpisodeInfo x in info.sortedEpisodes) {
       final Dye i = Dye('${x.episode}.');
 
       if (range?.contains(x.episode) ?? false) {
         i.apply('lightGreen');
-        downloadEpisodes.add(x);
+        selectedEpisodes.add(x);
       }
 
       print(
@@ -116,14 +122,32 @@ class AnimeInfoCommand extends Command<void> {
       );
     }
 
-    if (downloadEpisodes.isNotEmpty) {
+    final bool isDownload = argResults!['download'] as bool;
+    final bool isPlay = argResults!['play'] as bool;
+
+    if (isDownload && isPlay) {
+      throw CRTException('--download and --play are not supported together.');
+    }
+
+    if (isDownload || isPlay) {
       println();
-      printHeading('Downloads');
+
+      if (isDownload) printHeading('Downloads');
+
+      if (selectedEpisodes.isEmpty) {
+        throw CRTException.missingOption('episodes');
+      }
+
+      if (isPlay && selectedEpisodes.length != 1) {
+        throw CRTException.invalidOption(
+          'episodes (Only only episode can be played at a time)',
+        );
+      }
 
       final String? destination = argResults!.wasParsed('destination')
           ? argResults!['destination'] as String
           : AppSettings.settings.animeDestination;
-      if (destination == null) {
+      if (isDownload && destination == null) {
         throw CRTException.missingOption('destination');
       }
 
@@ -153,13 +177,12 @@ class AnimeInfoCommand extends Command<void> {
 
       final String fileNamePrefix = '[${eRestArg.metadata.name}] ${info.title}';
 
-      for (final EpisodeInfo x in downloadEpisodes) {
-        print(
-          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
-        );
-
-        final String leftSpace =
-            List<String>.filled(x.episode.length + 2, ' ').join();
+      for (final EpisodeInfo x in selectedEpisodes) {
+        if (isDownload) {
+          print(
+            '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+          );
+        }
 
         final List<EpisodeSource> episode =
             await eRestArg.extractor.getSources(x);
@@ -177,48 +200,74 @@ class AnimeInfoCommand extends Command<void> {
           );
         }
 
-        print(
-          leftSpace +
-              Dye.dye('Source: ', 'darkGray').toString() +
-              Dye.dye(source.url, 'darkGray/underline').toString() +
-              Dye.dye(' (${source.quality.code})', 'darkGray').toString(),
-        );
+        if (isPlay) {
+          if (AppSettings.settings.mpvPath == null) {
+            throw CRTException('No mpv path was set in settings');
+          }
 
-        await AnimeDownloader.download(
-          leftSpace: leftSpace,
-          url: source.url,
-          headers: source.headers,
-          getDestination: (final DLResponse res) {
-            final String? fileExtension = getExtensionFromURL(source.url) ??
-                (res.response.headers.contentType != null
-                    ? extensionFromMime(
-                        res.response.headers.contentType!.mimeType,
-                      )
-                    : null);
+          print(
+            'Opening ${Dye.dye('episode ${x.episode}', 'cyan')} in ${Dye.dye('mpv', 'cyan')}.',
+          );
 
-            if (fileExtension == null) {
-              throw CRTException(
-                'Unable to find source type for episode ${x.episode}!',
+          await Process.start(
+            AppSettings.settings.mpvPath!,
+            <String>[
+              if (source.headers.isNotEmpty)
+                '--http-header-fields=${source.headers.entries.map((final MapEntry<String, String> x) => "${x.key}: '${x.value}'").join(',')}',
+              '--title=$fileNamePrefix - Episode ${x.episode} (${source.quality.code})',
+              source.url,
+            ],
+            mode: ProcessStartMode.detached,
+          );
+        }
+
+        if (isDownload) {
+          final String leftSpace =
+              List<String>.filled(x.episode.length + 2, ' ').join();
+
+          print(
+            leftSpace +
+                Dye.dye('Source: ', 'darkGray').toString() +
+                Dye.dye(source.url, 'darkGray/underline').toString() +
+                Dye.dye(' (${source.quality.code})', 'darkGray').toString(),
+          );
+
+          await AnimeDownloader.download(
+            leftSpace: leftSpace,
+            url: source.url,
+            headers: source.headers,
+            getDestination: (final DLResponse res) {
+              final String? fileExtension = getExtensionFromURL(source.url) ??
+                  (res.response.headers.contentType != null
+                      ? extensionFromMime(
+                          res.response.headers.contentType!.mimeType,
+                        )
+                      : null);
+
+              if (fileExtension == null) {
+                throw CRTException(
+                  'Unable to find source type for episode ${x.episode}!',
+                );
+              }
+
+              final String filePath = path.join(
+                destination!,
+                fileNamePrefix,
+                '$fileNamePrefix - Episode ${x.episode} (${source.quality.code}).$fileExtension',
               );
-            }
 
-            final String filePath = path.join(
-              destination,
-              fileNamePrefix,
-              '$fileNamePrefix - Episode ${x.episode} (${source.quality.code}).$fileExtension',
-            );
+              print(
+                leftSpace +
+                    Dye.dye('Output: ', 'darkGray').toString() +
+                    Dye.dye(filePath, 'darkGray/underline').toString(),
+              );
 
-            print(
-              leftSpace +
-                  Dye.dye('Output: ', 'darkGray').toString() +
-                  Dye.dye(filePath, 'darkGray/underline').toString(),
-            );
+              return filePath;
+            },
+          );
 
-            return filePath;
-          },
-        );
-
-        stdout.write('\r');
+          stdout.write('\r');
+        }
       }
     }
   }

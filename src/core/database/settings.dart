@@ -10,6 +10,7 @@ class AppSettings {
     this.fallbackVideoQuality,
     this.animeDestination,
     this.mangaDestination,
+    this.mpvPath,
   });
 
   factory AppSettings.defaultSettings() => AppSettings._();
@@ -28,6 +29,7 @@ class AppSettings {
           json['animeDestination'] as String? ?? d.animeDestination,
       mangaDestination:
           json['mangaDestination'] as String? ?? d.mangaDestination,
+      mpvPath: json['mpvPath'] as String? ?? d.mpvPath,
     );
   }
 
@@ -36,6 +38,7 @@ class AppSettings {
   String? fallbackVideoQuality;
   String? animeDestination;
   String? mangaDestination;
+  String? mpvPath;
 
   Map<dynamic, dynamic> toJson() => <dynamic, dynamic>{
         'ignoreSSLCertificate': ignoreSSLCertificate,
@@ -43,6 +46,7 @@ class AppSettings {
         'fallbackVideoQuality': fallbackVideoQuality,
         'animeDestination': animeDestination,
         'mangaDestination': mangaDestination,
+        'mpvPath': mpvPath,
       };
 
   static late AppSettings settings;
