@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import '../commands/anime.dart';
+import '../commands/manga.dart';
 import '../commands/settings.dart';
 import '../commands/tenka.dart';
 import '../commands/terminal.dart';
@@ -17,6 +18,7 @@ abstract class AppCommander {
 
     runner
       ..addCommand(AnimeCommand())
+      ..addCommand(MangaCommand())
       ..addCommand(TenkaCommand())
       ..addCommand(SettingsCommand())
       ..addCommand(TerminalCommand())
