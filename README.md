@@ -6,8 +6,6 @@
 
 ☄ Anime/Manga command-line interface backed up by Tenka.
 
-By using this project, you agree to the [usage policy](https://yukino-org.github.io/wiki/tenka/disclaimer/).
-
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Code Analysis](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml)
 
