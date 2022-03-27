@@ -1,5 +1,5 @@
 name: yukimi
-description: Anime/Manga command-line interface backed up by Tenka.
+description: "☄ Anime/Manga command-line interface backed up by Tenka."
 version: 1.0.0
 
 publish_to: none
@@ -18,20 +18,20 @@ dependencies:
     shlex: ^2.0.2
     tenka:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_tenka
     utilx:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_utilx
     utilx_desktop:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_utilx_desktop
 
 dev_dependencies:
     devx:
         git:
-            url: git://github.com/yukino-org/packages.git
+            url: https://github.com/yukino-org/packages.git
             ref: dart_devx
     lint: ^1.5.3
