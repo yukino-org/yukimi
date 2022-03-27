@@ -1,0 +1,54 @@
+name: Build (Artifacts)
+
+on:
+    workflow_dispatch:
+
+env:
+    APP_NAME: yukimi
+    DART_SDK: beta
+    INPUT_PATH: src/main.dart
+    OUTPUT_EXE_DIR: bin
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os:
+                    - ubuntu-latest
+                    - windows-latest
+                    - macOS-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - uses: dart-lang/setup-dart@v1
+              with:
+                  sdk: ${{ env.DART_SDK }}
+
+            - uses: actions/github-script@v6
+              id: platform-name
+              with:
+                  result-encoding: string
+                  script: |
+                      const { getPlatform } = require("./cli/actions/platform");
+                      return getPlatform();
+            - uses: actions/github-script@v6
+              id: exe-path
+              with:
+                  result-encoding: string
+                  script: |
+                      const { getExecutableName } = require("./cli/actions/executable_name");
+                      const executableName = await getExecutableName();
+                      return executableName;
+            - name: 🚧 Do prerequisites
+              run: |
+                  dart pub get
+                  dart run ./cli/generate_meta.dart
+            - name: 👷 Build executable
+              run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
+
+            - name: 🚀 Upload artifact
+              uses: actions/upload-artifact@v3
+              with:
+                  name: ${{ env.APP_NAME }}-${{ steps.platform-name.outputs.result }}
+                  path: ${{ steps.exe-path.outputs.result }}

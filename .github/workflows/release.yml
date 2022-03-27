@@ -1,0 +1,105 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+env:
+    APP_NAME: yukimi
+    DART_SDK: beta
+    INPUT_PATH: src/main.dart
+    OUTPUT_EXE_DIR: bin
+    DEPLOY_BRANCH_PREFIX: dist
+    GIT_CONFIG_NAME: "[Automated] Yui"
+    GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
+    GIT_ORIGIN_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os:
+                    - ubuntu-latest
+                    - windows-latest
+                    - macOS-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - uses: dart-lang/setup-dart@v1
+              with:
+                  sdk: ${{ env.DART_SDK }}
+
+            - uses: actions/github-script@v6
+              id: exe-path
+              with:
+                  result-encoding: string
+                  script: |
+                      const { getExecutableName } = require("./cli/actions/executable_name");
+                      const executableName = await getExecutableName();
+                      return executableName;
+            - uses: actions/github-script@v6
+              id: commit-msg
+              with:
+                  result-encoding: string
+                  script: |
+                      const { getVersion } = require("./cli/actions/version");
+                      const version = await getVersion();
+                      return `[automated] v${version} (${{ github.sha }})`;
+            - uses: actions/github-script@v6
+              id: platform-name
+              with:
+                  result-encoding: string
+                  script: |
+                      const { getPlatform } = require("./cli/actions/platform");
+                      return getPlatform();
+            - name: 🚧 Do prerequisites
+              run: |
+                  dart pub get
+                  dart run ./cli/generate_meta.dart
+            - name: 👷 Build executable
+              run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
+
+            - name: 🚀 Release executables
+              working-directory: ${{ env.OUTPUT_EXE_DIR }}
+              env:
+                  DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-${{ steps.platform-name.outputs.result }}
+              run: |
+                  git init
+                  git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
+                  git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
+                  git remote add origin ${{ env.GIT_ORIGIN_URL }}
+                  git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
+                  git add .
+                  git commit -m "${{ steps.commit-msg.outputs.result }}"
+                  git push -u origin ${{ env.DEPLOY_BRANCH }} --force
+    data:
+        runs-on: ubuntu-latest
+        env:
+            GIT_COMMIT_MSG: "[automated] update data (${{ github.sha }})"
+        steps:
+            - uses: actions/checkout@v2
+
+            - uses: actions/github-script@v6
+              id: data-path
+              with:
+                  result-encoding: string
+                  script: |
+                      const { generateData } = require("./cli/actions/generate_dist_data");
+                      const dataDir = await generateData();
+                      return dataDir;
+            - name: 🚀 Update data
+              working-directory: ${{ steps.data-path.outputs.result }}
+              env:
+                  DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-data
+              run: |
+                  git init
+                  git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
+                  git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
+                  git remote add origin ${{ env.GIT_ORIGIN_URL }}
+                  git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
+                  git add .
+                  git commit -m "${{ env.GIT_COMMIT_MSG }}"
+                  git push -u origin ${{ env.DEPLOY_BRANCH }} --force
