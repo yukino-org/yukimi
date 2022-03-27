@@ -3,7 +3,7 @@ import 'package:path/path.dart' as path;
 import 'utils.dart';
 
 final String pubspecPath = path.join(Paths.rootDir, 'pubspec.yaml');
-final String metaPath = path.join(Paths.libDir, 'config/meta.g.dart');
+final String metaPath = path.join(Paths.srcDir, 'config/meta.g.dart');
 
 Future<void> main() async {
   final String pubspec = await File(pubspecPath).readAsString();

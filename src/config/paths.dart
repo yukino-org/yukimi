@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'package:utilx/utils/fs.dart';
+import 'package:utilx/utils.dart';
 import 'constants.dart';
 
 abstract class Paths {
