@@ -88,6 +88,14 @@ jobs:
         steps:
             - uses: actions/checkout@v2
 
+            - uses: dart-lang/setup-dart@v1
+              with:
+                  sdk: ${{ env.DART_SDK }}
+
+            - run: |
+                  dart pub get
+                  dart run ./cli/generate_docs.dart
+
             - uses: actions/github-script@v6
               id: data-path
               with:

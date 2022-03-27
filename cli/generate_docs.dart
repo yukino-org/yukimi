@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:utilx/utils.dart';
 import '../src/core/commander.dart';
 
-final String outputPath = path.join(Directory.current.path, 'dist/README.md');
+final String outputPath = path.join(Directory.current.path, 'dist/docs.md');
 
 class CommandDoc {
   const CommandDoc(
