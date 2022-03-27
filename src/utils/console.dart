@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:colorize/colorize.dart';
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 import '../config/constants.dart';
 import '../config/meta.g.dart';
 import '../core/manager.dart';

@@ -1,5 +1,5 @@
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 import '../../core/tenka.dart';
 import '../../utils/console.dart';
 

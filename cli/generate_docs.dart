@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 import '../src/core/commander.dart';
 
 final String outputPath = path.join(Directory.current.path, 'dist/README.md');

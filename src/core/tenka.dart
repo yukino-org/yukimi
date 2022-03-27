@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:tenka/tenka.dart';
-import 'package:utilx_desktop/utilities/webview/providers/puppeteer/provider.dart';
+import 'package:utilx_desktop/webview/puppeteer/provider.dart';
 import '../config/constants.dart';
 import '../config/paths.dart';
 import 'database/settings.dart';

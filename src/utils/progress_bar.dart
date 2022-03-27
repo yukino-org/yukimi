@@ -28,14 +28,8 @@ class ProgressBar {
     stdout.write('\r$prefix$state [$bPrefix$bSuffix]');
   }
 
-  void end({
-    final bool removeBar = true,
-  }) {
-    if (removeBar) {
-      stdout.write('\r${List<String>.filled(terminalWidth, ' ').join()}\n');
-    } else {
-      stdout.writeln();
-    }
+  void end() {
+    stdout.write('\r${List<String>.filled(terminalWidth, ' ').join()}');
   }
 
   int get terminalWidth => stdout.terminalColumns;

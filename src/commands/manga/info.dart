@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:collection/collection.dart';
-import 'package:dl/dl.dart';
-import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/locale.dart';
+import 'package:utilx/locale.dart';
+import '../../config/paths.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
 import '../../core/manager.dart';
@@ -23,28 +21,20 @@ class MangaInfoCommand extends Command<void> {
       ..addFlag('no-cache', negatable: false)
       ..addFlag('download', abbr: 'd')
       ..addFlag(
-        'play',
-        abbr: 'p',
-        aliases: <String>['mpv'],
+        'view',
+        abbr: 'v',
+        aliases: <String>['open'],
         negatable: false,
       )
       ..addMultiOption(
-        'episodes',
-        abbr: 'e',
-        aliases: <String>['episode', 'ep', 'eps'],
+        'chapters',
+        abbr: 'c',
+        aliases: <String>['chapter', 'ch', 'chs'],
       )
       ..addOption(
         'destination',
         abbr: 'o',
         aliases: <String>['outDir'],
-      )
-      ..addOption(
-        'quality',
-        abbr: 'q',
-      )
-      ..addOption(
-        'fallbackQuality',
-        aliases: <String>['fq'],
       );
   }
 
@@ -62,9 +52,9 @@ class MangaInfoCommand extends Command<void> {
     final TenkaModuleArgs<MangaExtractor> moduleArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
-    final ContentRange? range = argResults!.wasParsed('episodes')
+    final ContentRange? range = argResults!.wasParsed('chapters')
         ? ContentRange.parse(
-            (argResults!['episodes'] as List<dynamic>).cast<String>(),
+            (argResults!['chapters'] as List<dynamic>).cast<String>(),
           )
         : null;
 
@@ -109,7 +99,7 @@ class MangaInfoCommand extends Command<void> {
     printHeading('Chapters');
 
     final List<ChapterInfo> selectedChapters = <ChapterInfo>[];
-    for (final ChapterInfo x in info.sortedChapters) {
+    for (final ChapterInfo x in info.chapters) {
       final Dye i = Dye('${x.chapter}.');
 
       if (range?.contains(x.chapter) ?? false) {
@@ -122,154 +112,83 @@ class MangaInfoCommand extends Command<void> {
       );
     }
 
-    // final bool isDownload = argResults!['download'] as bool;
-    // final bool isPlay = argResults!['play'] as bool;
+    final bool isDownload = argResults!['download'] as bool;
+    final bool isView = argResults!['view'] as bool;
 
-    // if (isDownload && isPlay) {
-    //   throw CRTException('--download and --play are not supported together.');
-    // }
+    if (isDownload || isView) {
+      println();
 
-    // if (isDownload || isPlay) {
-    //   println();
+      if (isDownload) printHeading('Downloads');
 
-    //   if (isDownload) printHeading('Downloads');
+      if (selectedChapters.isEmpty) {
+        throw CRTException.missingOption('chapters');
+      }
 
-    //   if (selectedEpisodes.isEmpty) {
-    //     throw CRTException.missingOption('episodes');
-    //   }
+      if (isView && selectedChapters.length != 1) {
+        throw CRTException.invalidOption(
+          'chapters (Only one chapter can be viewed at a time)',
+        );
+      }
 
-    //   if (isPlay && selectedEpisodes.length != 1) {
-    //     throw CRTException.invalidOption(
-    //       'episodes (Only only episode can be played at a time)',
-    //     );
-    //   }
+      final String? dDestination = argResults!.wasParsed('destination')
+          ? argResults!['destination'] as String
+          : AppSettings.settings.mangaDestination;
+      if (isDownload && dDestination == null) {
+        throw CRTException.missingOption('destination');
+      }
 
-    //   final String? destination = argResults!.wasParsed('destination')
-    //       ? argResults!['destination'] as String
-    //       : AppSettings.settings.animeDestination;
-    //   if (isDownload && destination == null) {
-    //     throw CRTException.missingOption('destination');
-    //   }
+      final String fileNamePrefix =
+          '[${moduleArgs.metadata.name}] ${info.title}';
+      final String destination =
+          dDestination ?? path.join(Paths.tmpDir, fileNamePrefix);
 
-    //   final String? parsedPreferredQuality = argResults!.wasParsed('quality')
-    //       ? argResults!['quality'] as String
-    //       : AppSettings.settings.preferredVideoQuality;
+      for (final ChapterInfo x in selectedChapters) {
+        print(
+          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+        );
 
-    //   final String? parsedFallbackQuality =
-    //       argResults!.wasParsed('fallbackQuality')
-    //           ? argResults!['fallbackQuality'] as String
-    //           : AppSettings.settings.fallbackVideoQuality;
+        final List<PageInfo> pages =
+            await moduleArgs.extractor.getChapter(x.url, x.locale);
 
-    //   if (parsedPreferredQuality == null) {
-    //     throw CRTException.missingOption('quality');
-    //   }
+        final String leftSpace =
+            List<String>.filled(x.chapter.length + 2, ' ').join();
 
-    //   final Qualities? preferredQuality =
-    //       resolveQuality(parsedPreferredQuality);
+        final String fDestination =
+            path.join(destination, 'Chapter ${x.chapter}');
 
-    //   final Qualities? fallbackQuality = parsedFallbackQuality != null
-    //       ? resolveQuality(parsedFallbackQuality)
-    //       : null;
+        await MangaDownloader.download(
+          leftSpace: leftSpace,
+          pages: pages,
+          extractor: moduleArgs.extractor,
+          getDestination: (final DLPageData res) {
+            final String filePath = path.join(
+              fDestination,
+              '$fileNamePrefix - Chapter ${x.chapter} - Page ${res.index + 1}.${res.mimeType}',
+            );
 
-    //   if (preferredQuality == null) {
-    //     throw CRTException.invalidOption('quality ($parsedPreferredQuality)');
-    //   }
+            return filePath;
+          },
+        );
 
-    //   final String fileNamePrefix =
-    //       '[${moduleArgs.metadata.name}] ${info.title}';
+        stdout.write('\r');
+        print(
+          leftSpace +
+              Dye.dye('Output: ', 'darkGray').toString() +
+              Dye.dye(fDestination, 'darkGray/underline').toString(),
+        );
 
-    //   for (final EpisodeInfo x in selectedEpisodes) {
-    //     if (isDownload) {
-    //       print(
-    //         '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
-    //       );
-    //     }
-
-    //     final List<EpisodeSource> episode =
-    //         await moduleArgs.extractor.getSources(x);
-
-    //     final EpisodeSource? source = episode.firstWhereOrNull(
-    //           (final EpisodeSource x) => x.quality.quality == preferredQuality,
-    //         ) ??
-    //         episode.firstWhereOrNull(
-    //           (final EpisodeSource x) => x.quality.quality == fallbackQuality,
-    //         );
-
-    //     if (source == null) {
-    //       throw CRTException(
-    //         'Unable to find appropriate source for episode ${x.episode}!',
-    //       );
-    //     }
-
-    //     if (isPlay) {
-    //       if (AppSettings.settings.mpvPath == null) {
-    //         throw CRTException('No mpv path was set in settings');
-    //       }
-
-    //       print(
-    //         'Opening ${Dye.dye('episode ${x.episode}', 'cyan')} in ${Dye.dye('mpv', 'cyan')}.',
-    //       );
-
-    //       await Process.start(
-    //         AppSettings.settings.mpvPath!,
-    //         <String>[
-    //           if (source.headers.isNotEmpty)
-    //             '--http-header-fields=${source.headers.entries.map((final MapEntry<String, String> x) => "${x.key}: '${x.value}'").join(',')}',
-    //           '--title=$fileNamePrefix - Episode ${x.episode} (${source.quality.code})',
-    //           source.url,
-    //         ],
-    //         mode: ProcessStartMode.detached,
-    //       );
-    //     }
-
-    //     if (isDownload) {
-    //       final String leftSpace =
-    //           List<String>.filled(x.episode.length + 2, ' ').join();
-
-    //       print(
-    //         leftSpace +
-    //             Dye.dye('Source: ', 'darkGray').toString() +
-    //             Dye.dye(source.url, 'darkGray/underline').toString() +
-    //             Dye.dye(' (${source.quality.code})', 'darkGray').toString(),
-    //       );
-
-    //       await MangaDownloader.download(
-    //         leftSpace: leftSpace,
-    //         url: source.url,
-    //         headers: source.headers,
-    //         getDestination: (final DLResponse res) {
-    //           final String? fileExtension = getExtensionFromURL(source.url) ??
-    //               (res.response.headers.contentType != null
-    //                   ? extensionFromMime(
-    //                       res.response.headers.contentType!.mimeType,
-    //                     )
-    //                   : null);
-
-    //           if (fileExtension == null) {
-    //             throw CRTException(
-    //               'Unable to find source type for episode ${x.episode}!',
-    //             );
-    //           }
-
-    //           final String filePath = path.join(
-    //             destination!,
-    //             fileNamePrefix,
-    //             '$fileNamePrefix - Episode ${x.episode} (${source.quality.code}).$fileExtension',
-    //           );
-
-    //           print(
-    //             leftSpace +
-    //                 Dye.dye('Output: ', 'darkGray').toString() +
-    //                 Dye.dye(filePath, 'darkGray/underline').toString(),
-    //           );
-
-    //           return filePath;
-    //         },
-    //       );
-
-    //       stdout.write('\r');
-    //     }
-    //   }
-    // }
+        if (isView) {
+          final String fExecutable = getFileSystemExecutable();
+          print(
+            '${leftSpace}Opening ${Dye.dye('chapter ${x.chapter}', 'cyan')} in ${Dye.dye(fExecutable, 'cyan')}.',
+          );
+          await Process.start(
+            fExecutable,
+            <String>[fDestination],
+            mode: ProcessStartMode.detached,
+          );
+        }
+      }
+    }
   }
 }

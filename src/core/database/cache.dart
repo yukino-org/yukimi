@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/utils.dart';
+import 'package:utilx/utils.dart';
 import '../../config/paths.dart';
 
 typedef CacheItem = Map<String, Map<dynamic, dynamic>>;

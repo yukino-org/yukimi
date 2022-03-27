@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dl/dl.dart';
-import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/locale.dart';
+import 'package:utilx/locale.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
 import '../../core/manager.dart';
@@ -109,7 +108,7 @@ class AnimeInfoCommand extends Command<void> {
     printHeading('Episodes');
 
     final List<EpisodeInfo> selectedEpisodes = <EpisodeInfo>[];
-    for (final EpisodeInfo x in info.sortedEpisodes) {
+    for (final EpisodeInfo x in info.episodes) {
       final Dye i = Dye('${x.episode}.');
 
       if (range?.contains(x.episode) ?? false) {
@@ -140,7 +139,7 @@ class AnimeInfoCommand extends Command<void> {
 
       if (isPlay && selectedEpisodes.length != 1) {
         throw CRTException.invalidOption(
-          'episodes (Only only episode can be played at a time)',
+          'episodes (Only one episode can be played at a time)',
         );
       }
 
@@ -186,7 +185,7 @@ class AnimeInfoCommand extends Command<void> {
         }
 
         final List<EpisodeSource> episode =
-            await moduleArgs.extractor.getSources(x);
+            await moduleArgs.extractor.getSources(x.url, x.locale);
 
         final EpisodeSource? source = episode.firstWhereOrNull(
               (final EpisodeSource x) => x.quality.quality == preferredQuality,
@@ -238,13 +237,7 @@ class AnimeInfoCommand extends Command<void> {
             url: source.url,
             headers: source.headers,
             getDestination: (final DLResponse res) {
-              final String? fileExtension = getExtensionFromURL(source.url) ??
-                  (res.response.headers.contentType != null
-                      ? extensionFromMime(
-                          res.response.headers.contentType!.mimeType,
-                        )
-                      : null);
-
+              final String? fileExtension = extensionFromDLResponse(res);
               if (fileExtension == null) {
                 throw CRTException(
                   'Unable to find source type for episode ${x.episode}!',

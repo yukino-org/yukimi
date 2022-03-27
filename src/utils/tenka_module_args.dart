@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
 import 'package:tenka/tenka.dart';
-import 'package:utilx/utilities/locale.dart';
+import 'package:utilx/locale.dart';
 import '../core/tenka.dart';
 import 'command_exception.dart';
 

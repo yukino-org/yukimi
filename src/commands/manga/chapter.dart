@@ -23,14 +23,8 @@ class MangaEpisodeCommand extends Command<void> {
     final TenkaModuleArgs<AnimeExtractor> moduleArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
-    final List<EpisodeSource> results = await moduleArgs.extractor.getSources(
-      EpisodeInfo(
-        // NOTE: dont matter much
-        episode: '0',
-        url: moduleArgs.terms,
-        locale: moduleArgs.locale,
-      ),
-    );
+    final List<EpisodeSource> results = await moduleArgs.extractor
+        .getSources(moduleArgs.terms, moduleArgs.locale);
 
     if (AppManager.isJsonMode) {
       printJson(results.map((final EpisodeSource x) => x.toJson()).toList());
