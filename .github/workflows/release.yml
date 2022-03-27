@@ -82,6 +82,7 @@ jobs:
                   git push -u origin ${{ env.DEPLOY_BRANCH }} --force
 
     data:
+        needs: [build]
         runs-on: ubuntu-latest
         env:
             GIT_COMMIT_MSG: "[automated] update data (${{ github.sha }})"
