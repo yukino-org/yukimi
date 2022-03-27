@@ -32,6 +32,7 @@ jobs:
                   script: |
                       const { getPlatform } = require("./cli/actions/platform");
                       return getPlatform();
+
             - uses: actions/github-script@v6
               id: exe-path
               with:
@@ -40,10 +41,12 @@ jobs:
                       const { getExecutableName } = require("./cli/actions/executable_name");
                       const executableName = await getExecutableName();
                       return executableName;
+
             - name: 🚧 Do prerequisites
               run: |
                   dart pub get
                   dart run ./cli/generate_meta.dart
+
             - name: 👷 Build executable
               run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
 

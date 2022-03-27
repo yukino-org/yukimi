@@ -40,6 +40,7 @@ jobs:
                       const { getExecutableName } = require("./cli/actions/executable_name");
                       const executableName = await getExecutableName();
                       return executableName;
+
             - uses: actions/github-script@v6
               id: commit-msg
               with:
@@ -47,7 +48,9 @@ jobs:
                   script: |
                       const { getVersion } = require("./cli/actions/version");
                       const version = await getVersion();
+
                       return `[automated] v${version} (${{ github.sha }})`;
+
             - uses: actions/github-script@v6
               id: platform-name
               with:
@@ -55,10 +58,12 @@ jobs:
                   script: |
                       const { getPlatform } = require("./cli/actions/platform");
                       return getPlatform();
+
             - name: 🚧 Do prerequisites
               run: |
                   dart pub get
                   dart run ./cli/generate_meta.dart
+
             - name: 👷 Build executable
               run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
 
@@ -75,6 +80,7 @@ jobs:
                   git add .
                   git commit -m "${{ steps.commit-msg.outputs.result }}"
                   git push -u origin ${{ env.DEPLOY_BRANCH }} --force
+
     data:
         runs-on: ubuntu-latest
         env:
@@ -90,6 +96,7 @@ jobs:
                       const { generateData } = require("./cli/actions/generate_dist_data");
                       const dataDir = await generateData();
                       return dataDir;
+
             - name: 🚀 Update data
               working-directory: ${{ steps.data-path.outputs.result }}
               env:
