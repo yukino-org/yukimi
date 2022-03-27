@@ -32,7 +32,7 @@ class AnimeEpisodeCommand extends Command<void> {
     }
 
     printTitle('Episode Sources');
-    print(DyeUtils.dyeKeyValue('Terms', moduleArgs.terms));
+    print(DyeUtils.dyeKeyValue('URL', moduleArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',

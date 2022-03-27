@@ -1,13 +1,15 @@
 import 'package:args/command_runner.dart';
 import 'manga/chapter.dart';
 import 'manga/info.dart';
+import 'manga/page.dart';
 import 'manga/search.dart';
 
 class MangaCommand extends Command<void> {
   MangaCommand() {
     addSubcommand(MangaInfoCommand());
     addSubcommand(MangaSearchCommand());
-    addSubcommand(MangaEpisodeCommand());
+    addSubcommand(MangaChapterCommand());
+    addSubcommand(MangaPageCommand());
   }
 
   @override

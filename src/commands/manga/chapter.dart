@@ -4,35 +4,35 @@ import '../../core/manager.dart';
 import '../../utils/console.dart';
 import '../../utils/tenka_module_args.dart';
 
-class MangaEpisodeCommand extends Command<void> {
-  MangaEpisodeCommand() {
+class MangaChapterCommand extends Command<void> {
+  MangaChapterCommand() {
     TenkaModuleArgs.addOptions(argParser);
   }
 
   @override
-  final String name = 'episode';
+  final String name = 'chapter';
 
   @override
-  final List<String> aliases = <String>['ep', 'sources', 'source'];
+  final List<String> aliases = <String>['chapters', 'ch', 'chs'];
 
   @override
-  final String description = 'Display information of an episode.';
+  final String description = 'Display information of a chapter.';
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<AnimeExtractor> moduleArgs =
-        await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
+    final TenkaModuleArgs<MangaExtractor> moduleArgs =
+        await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
-    final List<EpisodeSource> results = await moduleArgs.extractor
-        .getSources(moduleArgs.terms, moduleArgs.locale);
+    final List<PageInfo> results = await moduleArgs.extractor
+        .getChapter(moduleArgs.terms, moduleArgs.locale);
 
     if (AppManager.isJsonMode) {
-      printJson(results.map((final EpisodeSource x) => x.toJson()).toList());
+      printJson(results.map((final PageInfo x) => x.toJson()).toList());
       return;
     }
 
-    printTitle('Episode Sources');
-    print(DyeUtils.dyeKeyValue('Terms', moduleArgs.terms));
+    printTitle('Chapter Pages');
+    print(DyeUtils.dyeKeyValue('URL', moduleArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',
@@ -43,19 +43,12 @@ class MangaEpisodeCommand extends Command<void> {
     printHeading('Results');
 
     int i = 1;
-    for (final EpisodeSource x in results) {
+    for (final PageInfo x in results) {
       print(
         '$i. ${DyeUtils.dyeKeyValue('URL', x.url, additionalValueStyles: 'underline')}',
       );
-      print('   ${DyeUtils.dyeKeyValue('Headers', '')}');
-      x.headers.forEach((final String key, final String value) {
-        print(
-          '      ${Dye.dye('-', 'darkGray')} ${DyeUtils.dyeKeyValue(key, value)}',
-        );
-      });
-      print('   ${DyeUtils.dyeKeyValue('Quality', x.quality.code)}');
       print(
-        '   ${DyeUtils.dyeKeyValue('Locale', x.locale.toPrettyString(appendCode: true))}',
+        '    ${DyeUtils.dyeKeyValue('Locale', x.locale.toPrettyString(appendCode: true))}',
       );
 
       i++;
