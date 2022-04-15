@@ -33,14 +33,14 @@ class TenkaModuleArgs<T> {
 
     final List<String> allRestArgs = argResults.rest;
     if (argResults.wasParsed('module')) {
-      moduleName = argResults['module'] as String;
+      moduleName = (argResults['module'] as String).toLowerCase();
       restArgs = allRestArgs;
     } else {
       if (allRestArgs.length < 2) {
         throw CRTException.missingOption('module');
       }
 
-      moduleName = allRestArgs[0];
+      moduleName = allRestArgs[0].toLowerCase();
       restArgs = allRestArgs.sublist(1);
     }
 
