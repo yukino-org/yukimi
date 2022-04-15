@@ -85,6 +85,10 @@ void printTitle([final String? title]) {
 
 void println() => print(' ');
 
+void printWarning(final String value) {
+  print(Dye.dye(value, 'lightYellow'));
+}
+
 void printError(final Object error, [final StackTrace? stack]) {
   print(Dye.dye(error.toString(), 'lightRed'));
   if (stack != null) {

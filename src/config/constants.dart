@@ -5,6 +5,4 @@ abstract class Constants {
 
   static const String description =
       'Anime/Manga command-line interface backed up by Tenka.';
-
-  static const String storeRef = 'next';
 }
