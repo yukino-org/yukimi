@@ -212,8 +212,10 @@ class AnimeInfoCommand extends Command<void> {
           await Process.start(
             AppSettings.settings.mpvPath!,
             <String>[
-              if (source.headers.isNotEmpty)
-                '--http-header-fields=${source.headers.entries.map((final MapEntry<String, String> x) => "${x.key}: '${x.value}'").join(',')}',
+              ...source.headers.entries.map(
+                (final MapEntry<String, String> x) =>
+                    '--http-header-fields-append=${x.key}:${x.value}',
+              ),
               '--title=$fileNamePrefix - Episode ${x.episode} (${source.quality.code})',
               source.url,
             ],
