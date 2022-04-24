@@ -72,14 +72,13 @@ jobs:
               env:
                   DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-${{ steps.platform-name.outputs.result }}
               run: |
-                  git init
+                  git clone ${{ env.GIT_ORIGIN_URL }} .
                   git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
-                  git remote add origin ${{ env.GIT_ORIGIN_URL }}
                   git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
                   git add .
                   git commit -m "${{ steps.commit-msg.outputs.result }}"
-                  git push -u origin ${{ env.DEPLOY_BRANCH }} --force
+                  git push origin ${{ env.DEPLOY_BRANCH }}
 
     data:
         needs: [build]
@@ -111,11 +110,10 @@ jobs:
               env:
                   DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-data
               run: |
-                  git init --bare
+                  git clone ${{ env.GIT_ORIGIN_URL }} .
                   git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
                   git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
-                  git remote add origin ${{ env.GIT_ORIGIN_URL }}
                   git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
                   git add .
                   git commit -m "${{ env.GIT_COMMIT_MSG }}"
-                  git push -u origin ${{ env.DEPLOY_BRANCH }}
+                  git push origin ${{ env.DEPLOY_BRANCH }}
