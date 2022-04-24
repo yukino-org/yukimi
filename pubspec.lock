@@ -205,7 +205,7 @@ packages:
       name: petitparser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.4.0"
+    version: "5.0.0"
   pointycastle:
     dependency: transitive
     description:
@@ -233,7 +233,7 @@ packages:
       name: puppeteer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.7.0"
+    version: "2.8.0"
   quiver:
     dependency: transitive
     description:
@@ -290,7 +290,7 @@ packages:
     description:
       path: "."
       ref: dart_tenka_runtime
-      resolved-ref: "421a8fcc41221ebfebcf50eb0f8e46802e09a359"
+      resolved-ref: "3ff3fbe8920452eec30d0ceb102784133c39fda8"
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
@@ -327,4 +327,4 @@ packages:
     source: git
     version: "0.0.0"
 sdks:
-  dart: ">=2.16.0-100.0.dev <3.0.0"
+  dart: ">=2.16.0 <3.0.0"
