@@ -107,3 +107,4 @@ jobs:
                   local-username: ${{ env.GIT_CONFIG_NAME }}
                   local-email: ${{ env.GIT_CONFIG_EMAIL }}
                   commit-message: "[automated] update data (${{ github.sha }})"
+                  allow-empty-commits: true
