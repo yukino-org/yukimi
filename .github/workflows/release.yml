@@ -14,7 +14,6 @@ env:
     DEPLOY_BRANCH_PREFIX: dist
     GIT_CONFIG_NAME: "[Automated] Yui"
     GIT_CONFIG_EMAIL: yukino-org@users.noreply.github.com
-    GIT_ORIGIN_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
 jobs:
     build:
@@ -68,23 +67,18 @@ jobs:
               run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
 
             - name: 🚀 Release executables
-              working-directory: ${{ env.OUTPUT_EXE_DIR }}
-              env:
-                  DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-${{ steps.platform-name.outputs.result }}
-              run: |
-                  git clone ${{ env.GIT_ORIGIN_URL }} .
-                  git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
-                  git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
-                  git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
-                  git add .
-                  git commit -m "${{ steps.commit-msg.outputs.result }}"
-                  git push origin ${{ env.DEPLOY_BRANCH }}
+              uses: zyrouge/gh-push-action@v1.0.0
+              with:
+                  directory: ${{ env.OUTPUT_EXE_DIR }}
+                  branch: ${{ env.DEPLOY_BRANCH_PREFIX }}-${{ steps.platform-name.outputs.result }}
+                  local-username: ${{ env.GIT_CONFIG_NAME }}
+                  local-email: ${{ env.GIT_CONFIG_EMAIL }}
+                  commit-message: ${{ steps.commit-msg.outputs.result }}
 
     data:
-        needs: [build]
+        needs:
+            - build
         runs-on: ubuntu-latest
-        env:
-            GIT_COMMIT_MSG: "[automated] update data (${{ github.sha }})"
         steps:
             - uses: actions/checkout@v2
 
@@ -106,14 +100,10 @@ jobs:
                       return dataDir;
 
             - name: 🚀 Update data
-              working-directory: ${{ steps.data-path.outputs.result }}
-              env:
-                  DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH_PREFIX }}-data
-              run: |
-                  git clone ${{ env.GIT_ORIGIN_URL }} .
-                  git config --local user.name "${{ env.GIT_CONFIG_NAME }}"
-                  git config --local user.email "${{ env.GIT_CONFIG_EMAIL }}"
-                  git checkout ${{ env.DEPLOY_BRANCH }} || git checkout -b ${{ env.DEPLOY_BRANCH }}
-                  git add .
-                  git commit -m "${{ env.GIT_COMMIT_MSG }}"
-                  git push origin ${{ env.DEPLOY_BRANCH }}
+              uses: zyrouge/gh-push-action@v1.0.0
+              with:
+                  directory: ${{ env.OUTPUT_EXE_DIR }}
+                  branch: ${{ env.DEPLOY_BRANCH_PREFIX }}-data
+                  local-username: ${{ env.GIT_CONFIG_NAME }}
+                  local-email: ${{ env.GIT_CONFIG_EMAIL }}
+                  commit-message: "[automated] update data (${{ github.sha }})"
