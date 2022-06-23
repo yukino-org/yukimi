@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:tenka/tenka.dart';
-import 'package:utilx_desktop/webview/puppeteer/provider.dart';
 import '../config/paths.dart';
 import 'database/settings.dart';
 
@@ -24,13 +22,6 @@ abstract class TenkaManager {
       runtime: TenkaRuntimeOptions(
         http: TenkaRuntimeHttpClientOptions(
           ignoreSSLCertificate: AppSettings.settings.ignoreSSLCertificate,
-        ),
-        webview: WebviewManagerInitializeOptions(
-          PuppeteerProvider(),
-          WebviewProviderOptions(
-            localChromiumPath: Paths.chromiumDataDir,
-            devMode: Platform.environment['YUKIMI_DEV_MODE'] == 'true',
-          ),
         ),
       ),
     );
