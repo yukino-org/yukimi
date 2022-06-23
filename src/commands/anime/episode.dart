@@ -20,11 +20,11 @@ class AnimeEpisodeCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<AnimeExtractor> moduleArgs =
+    final TenkaModuleArgs<AnimeExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
-    final List<EpisodeSource> results = await moduleArgs.extractor
-        .getSources(moduleArgs.terms, moduleArgs.locale);
+    final List<EpisodeSource> results =
+        await mArgs.extractor.getSources(mArgs.terms, mArgs.locale);
 
     if (AppManager.isJsonMode) {
       printJson(results.map((final EpisodeSource x) => x.toJson()).toList());
@@ -32,11 +32,11 @@ class AnimeEpisodeCommand extends Command<void> {
     }
 
     printTitle('Episode Sources');
-    print(DyeUtils.dyeKeyValue('URL', moduleArgs.terms));
+    print(DyeUtils.dyeKeyValue('URL', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',
-        moduleArgs.locale.toPrettyString(appendCode: true),
+        mArgs.locale.toPrettyString(appendCode: true),
       ),
     );
     println();

@@ -20,11 +20,11 @@ class MangaSearchCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<MangaExtractor> moduleArgs =
+    final TenkaModuleArgs<MangaExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
     final List<SearchInfo> results =
-        await moduleArgs.extractor.search(moduleArgs.terms, moduleArgs.locale);
+        await mArgs.extractor.search(mArgs.terms, mArgs.locale);
 
     if (AppManager.isJsonMode) {
       printJson(results.map((final SearchInfo x) => x.toJson()).toList());
@@ -32,11 +32,11 @@ class MangaSearchCommand extends Command<void> {
     }
 
     printTitle('Manga Search');
-    print(DyeUtils.dyeKeyValue('Terms', moduleArgs.terms));
+    print(DyeUtils.dyeKeyValue('Terms', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',
-        moduleArgs.locale.toPrettyString(appendCode: true),
+        mArgs.locale.toPrettyString(appendCode: true),
       ),
     );
     println();

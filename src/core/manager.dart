@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
+import '../commands/agree_to_usage.dart';
 import '../config/meta.dart';
 import '../config/paths.dart';
-import '../utils/command_exception.dart';
 import '../utils/console.dart';
+import '../utils/exceptions.dart';
 import 'commander.dart';
 import 'database/cache.dart';
 import 'database/settings.dart';
@@ -16,6 +17,9 @@ enum AppMode {
   json,
   normal,
 }
+
+const int kSuccessExitCode = 0;
+const int kFailureExitCode = 1;
 
 abstract class AppManager {
   static bool initialized = false;
@@ -48,24 +52,42 @@ abstract class AppManager {
     try {
       globalArgResults = runner.parse(args);
 
-      await checkForUpdates();
+      final bool isAgreeToUsagePolicyCommand =
+          globalArgResults!.arguments.isNotEmpty &&
+              globalArgResults!.arguments.first == kAgreeToUsagePolicyCommand;
+
+      if (!AppSettings.settings.usagePolicy && !isAgreeToUsagePolicyCommand) {
+        print(
+          'You must agree to the usage policy to use this application.',
+        );
+        print(
+          'Run the ${Dye.dye(kAgreeToUsagePolicyCommand, 'cyan')} command to agree to the usage policy.',
+        );
+
+        return kFailureExitCode;
+      }
+
+      if (!isAgreeToUsagePolicyCommand) {
+        await checkForUpdates();
+      }
+
       await runner.runCommand(globalArgResults!);
 
-      return 0;
+      return kSuccessExitCode;
     } on UsageException catch (err) {
       printError(err.message);
       print(err.usage);
     } catch (err, stack) {
       if (AppManager.isJsonMode) {
         printErrorJson(err);
-      } else if (err is CRTException) {
+      } else if (err is CommandException) {
         printError(err);
       } else {
         printError(err, stack);
       }
     }
 
-    return 1;
+    return kFailureExitCode;
   }
 
   static Future<void> dispose() async {

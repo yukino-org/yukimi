@@ -1,4 +1,4 @@
-import 'command_exception.dart';
+import 'exceptions.dart';
 
 class ContentRange {
   const ContentRange._(this.args, this.contains);
@@ -21,14 +21,17 @@ class ContentRange {
           final int a = int.parse(splitted[0]);
           final int b = int.parse(splitted[1]);
           final int range = b - a + 1;
-          if (range < 1) throw CRTException('Invalid range: $x (Bad Range)');
+          if (range < 1) {
+            throw CommandException('Invalid range: $x (Bad Range)');
+          }
+
           result.addAll(
             List<String>.generate(range, (final int i) => (a + i).toString()),
           );
           break;
 
         default:
-          throw CRTException('Invalid range: $x');
+          throw CommandException('Invalid range: $x');
       }
     }
 

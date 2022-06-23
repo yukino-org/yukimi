@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dl/dl.dart';
@@ -9,42 +10,99 @@ import '../../core/commander.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
 import '../../core/manager.dart';
-import '../../utils/command_exception.dart';
 import '../../utils/console.dart';
 import '../../utils/content_range.dart';
-import '../../utils/path.dart';
+import '../../utils/exceptions.dart';
+import '../../utils/others.dart';
 import '../../utils/tenka_module_args.dart';
 import '_utils.dart';
+
+class _Options extends CommandOptions {
+  const _Options(final ArgResults results) : super(results);
+
+  static const String kNoCache = 'no-cache';
+  bool get noCache => get<bool>(kNoCache);
+
+  static const String kDownload = 'download';
+  static const String kDownloadAbbr = 'd';
+  bool get download => get<bool>(kDownload);
+
+  static const String kPlay = 'play';
+  static const String kPlayAbbr = 'p';
+  static const List<String> kPlayAliases = <String>['stream'];
+  bool get play => get<bool>(kPlay);
+
+  static const String kEpisodes = 'episodes';
+  static const String kEpisodesAbbr = 'e';
+  static const List<String> kEpisodesAliases = <String>[
+    'range',
+    'episode',
+    'ep',
+    'eps'
+  ];
+  List<String>? get episodes =>
+      getNullable<List<dynamic>>(kEpisodes)?.cast<String>();
+
+  static const String kDestination = 'destination';
+  static const String kDestinationAbbr = 'o';
+  static const List<String> kDestinationAliases = <String>['outDir'];
+  String? get destination => getNullable(kDestination);
+
+  static const String kQuality = 'quality';
+  static const String kQualityAbbr = 'q';
+  String? get quality => getNullable(kQuality);
+
+  static const String kFallbackQuality = 'fallbackQuality';
+  static const List<String> kFallbackQualityAliases = <String>['fq'];
+  String? get fallbackQuality => getNullable(kFallbackQuality);
+
+  static const String kFilename = 'filename';
+  static const String kFilenameAbbr = 'n';
+  static const List<String> kFilenameAliases = <String>['file', 'name'];
+  String? get filename => getNullable(kFilename);
+}
 
 class AnimeInfoCommand extends Command<void> {
   AnimeInfoCommand() {
     TenkaModuleArgs.addOptions(argParser);
     argParser
-      ..addFlag('no-cache', negatable: false)
-      ..addFlag('download', abbr: 'd')
       ..addFlag(
-        'play',
-        abbr: 'p',
-        aliases: <String>['mpv'],
+        _Options.kNoCache,
+        negatable: false,
+      )
+      ..addFlag(
+        _Options.kDownload,
+        abbr: _Options.kDownloadAbbr,
+        negatable: false,
+      )
+      ..addFlag(
+        _Options.kPlay,
+        abbr: _Options.kPlayAbbr,
+        aliases: _Options.kPlayAliases,
         negatable: false,
       )
       ..addMultiOption(
-        'episodes',
-        abbr: 'e',
-        aliases: <String>['episode', 'ep', 'eps'],
+        _Options.kEpisodes,
+        abbr: _Options.kEpisodesAbbr,
+        aliases: _Options.kEpisodesAliases,
       )
       ..addOption(
-        'destination',
-        abbr: 'o',
-        aliases: <String>['outDir'],
+        _Options.kDestination,
+        abbr: _Options.kDestinationAbbr,
+        aliases: _Options.kDestinationAliases,
       )
       ..addOption(
-        'quality',
-        abbr: 'q',
+        _Options.kQuality,
+        abbr: _Options.kQualityAbbr,
       )
       ..addOption(
-        'fallbackQuality',
-        aliases: <String>['fq'],
+        _Options.kFallbackQuality,
+        aliases: _Options.kFallbackQualityAliases,
+      )
+      ..addOption(
+        _Options.kFilename,
+        abbr: _Options.kFilenameAbbr,
+        aliases: _Options.kFilenameAliases,
       );
   }
 
@@ -59,23 +117,22 @@ class AnimeInfoCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<AnimeExtractor> moduleArgs =
+    final _Options options = _Options(argResults!);
+
+    final TenkaModuleArgs<AnimeExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
-    final ContentRange? range = argResults!.wasParsed('episodes')
-        ? ContentRange.parse(
-            (argResults!['episodes'] as List<dynamic>).cast<String>(),
-          )
+    final ContentRange? range =
+        options.episodes != null ? ContentRange.parse(options.episodes!) : null;
+
+    final AnimeInfo? cached = !options.noCache
+        ? Cache.cache.getAnime(mArgs.metadata.id, mArgs.terms)
         : null;
 
-    final AnimeInfo? cached = argResults!['no-cache'] == false
-        ? Cache.cache.getAnime(moduleArgs.metadata.id, moduleArgs.terms)
-        : null;
+    final AnimeInfo info =
+        cached ?? await mArgs.extractor.getInfo(mArgs.terms, mArgs.locale);
 
-    final AnimeInfo info = cached ??
-        await moduleArgs.extractor.getInfo(moduleArgs.terms, moduleArgs.locale);
-
-    await Cache.cache.saveAnime(moduleArgs.metadata.id, info);
+    await Cache.cache.saveAnime(mArgs.metadata.id, info);
 
     if (AppManager.isJsonMode) {
       printJson(info.toJson());
@@ -122,73 +179,65 @@ class AnimeInfoCommand extends Command<void> {
       );
     }
 
-    final bool isDownload = argResults!['download'] as bool;
-    final bool isPlay = argResults!['play'] as bool;
-
-    if (isDownload && isPlay) {
-      throw CRTException('--download and --play are not supported together.');
+    if (options.download && options.play) {
+      throw const CommandException(
+        '--${_Options.kDownload} and --${_Options.kPlay} are not supported together.',
+      );
     }
 
-    if (isDownload || isPlay) {
+    if (options.download || options.play) {
       println();
 
-      if (isDownload) printHeading('Downloads');
+      if (options.download) printHeading('Downloads');
 
       if (selectedEpisodes.isEmpty) {
-        throw CRTException.missingOption('episodes');
+        throw CommandException.missingOption('episodes');
       }
 
-      if (isPlay && selectedEpisodes.length != 1) {
-        throw CRTException.invalidOption(
+      if (options.play && selectedEpisodes.length != 1) {
+        throw CommandException.invalidOption(
           'episodes (Only one episode can be played at a time)',
         );
       }
 
-      final String? destination = argResults!.wasParsed('destination')
-          ? AppCommander.replaceArgVariables(
-              argResults!['destination'] as String,
-            )
-          : AppSettings.settings.animeDestination;
-      if (isDownload && destination == null) {
-        throw CRTException.missingOption('destination');
-      }
+      final String destination = options.destination ??
+          path.join(
+            '\$${CommandArgumentTemplates.kSettingsAnimeDir}}',
+            '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} (\${${CommandArgumentTemplates.kEpisodeLocaleCode}})',
+          );
 
-      final String? parsedPreferredQuality = argResults!.wasParsed('quality')
-          ? argResults!['quality'] as String
-          : AppSettings.settings.preferredVideoQuality;
+      final String _preferredQuality =
+          options.quality ?? AppSettings.settings.animePreferredQuality;
+      final Qualities? preferredQuality = resolveQuality(_preferredQuality);
 
-      final String? parsedFallbackQuality =
-          argResults!.wasParsed('fallbackQuality')
-              ? argResults!['fallbackQuality'] as String
-              : AppSettings.settings.fallbackVideoQuality;
-
-      if (parsedPreferredQuality == null) {
-        throw CRTException.missingOption('quality');
-      }
-
-      final Qualities? preferredQuality =
-          resolveQuality(parsedPreferredQuality);
-
-      final Qualities? fallbackQuality = parsedFallbackQuality != null
-          ? resolveQuality(parsedFallbackQuality)
-          : null;
+      final String _fallbackQuality =
+          options.fallbackQuality ?? AppSettings.settings.animeFallbackQuality;
+      final Qualities? fallbackQuality = resolveQuality(_fallbackQuality);
 
       if (preferredQuality == null) {
-        throw CRTException.invalidOption('quality ($parsedPreferredQuality)');
+        throw CommandException.invalidOption(
+          '${_Options.kQuality} ($_preferredQuality)',
+        );
       }
 
-      final String fileNamePrefix =
-          '[${moduleArgs.metadata.name}] ${info.title}';
+      if (fallbackQuality == null) {
+        throw CommandException.invalidOption(
+          '${_Options.kFallbackQuality} ($_fallbackQuality)',
+        );
+      }
+
+      final String filename = options.filename ??
+          '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} — Ep. \${${CommandArgumentTemplates.kEpisodeNumber}} (\${${CommandArgumentTemplates.kEpisodeQuality}})';
 
       for (final EpisodeInfo x in selectedEpisodes) {
-        if (isDownload) {
+        if (options.download) {
           print(
             '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
           );
         }
 
         final List<EpisodeSource> episode =
-            await moduleArgs.extractor.getSources(x.url, x.locale);
+            await mArgs.extractor.getSources(x.url, x.locale);
 
         final EpisodeSource? source = episode.firstWhereOrNull(
               (final EpisodeSource x) => x.quality.quality == preferredQuality,
@@ -198,14 +247,38 @@ class AnimeInfoCommand extends Command<void> {
             );
 
         if (source == null) {
-          throw CRTException(
+          throw CommandException(
             'Unable to find appropriate source for episode ${x.episode}!',
           );
         }
 
-        if (isPlay) {
-          if (AppSettings.settings.mpvPath == null) {
-            throw CRTException('No mpv path was set in settings');
+        final CommandArgumentTemplates argTemplates =
+            CommandArgumentTemplates.withDefaultTemplates(
+          <String, String>{
+            CommandArgumentTemplates.kAnimeTitle: info.title,
+            CommandArgumentTemplates.kAnimeURL: info.url,
+            CommandArgumentTemplates.kAnimeLocale: info.locale.toPrettyString(),
+            CommandArgumentTemplates.kAnimeLocaleCode:
+                info.locale.toCodeString(),
+            CommandArgumentTemplates.kEpisodeNumber: x.episode,
+            CommandArgumentTemplates.kEpisodeQuality: source.quality.code,
+            CommandArgumentTemplates.kEpisodeLocale:
+                source.locale.toPrettyString(),
+            CommandArgumentTemplates.kEpisodeLocaleCode:
+                source.locale.toCodeString(),
+            CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
+            CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
+          },
+        );
+
+        final String rDestination = argTemplates.replace(destination);
+        final String rFilename = argTemplates.replace(filename);
+
+        if (options.play) {
+          final String? mpvPath =
+              AppSettings.settings.mpvPath ?? await getMpvPath();
+          if (mpvPath == null) {
+            throw const CommandException('No mpv path was set in settings');
           }
 
           print(
@@ -213,20 +286,20 @@ class AnimeInfoCommand extends Command<void> {
           );
 
           await Process.start(
-            AppSettings.settings.mpvPath!,
+            mpvPath,
             <String>[
               ...source.headers.entries.map(
                 (final MapEntry<String, String> x) =>
                     '--http-header-fields-append=${x.key}:${x.value}',
               ),
-              '--title=$fileNamePrefix - Episode ${x.episode} (${source.quality.code})',
+              '--title=$rFilename',
               source.url,
             ],
             mode: ProcessStartMode.detached,
           );
         }
 
-        if (isDownload) {
+        if (options.download) {
           final String leftSpace =
               List<String>.filled(x.episode.length + 2, ' ').join();
 
@@ -242,18 +315,15 @@ class AnimeInfoCommand extends Command<void> {
             url: source.url,
             headers: source.headers,
             getDestination: (final DLResponse res) {
-              final String? fileExtension = extensionFromDLResponse(res);
+              final String? fileExtension = getFileExtensionFromDLResponse(res);
               if (fileExtension == null) {
-                throw CRTException(
+                throw CommandException(
                   'Unable to find source type for episode ${x.episode}!',
                 );
               }
 
-              final String filePath = path.join(
-                destination!,
-                fileNamePrefix,
-                '$fileNamePrefix - Episode ${x.episode} (${source.quality.code}).$fileExtension',
-              );
+              final String filePath =
+                  path.join(rDestination, '$rFilename.$fileExtension');
 
               print(
                 leftSpace +

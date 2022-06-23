@@ -1,30 +1,38 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:tenka/tenka.dart';
 import '../../config/paths.dart';
 import '../../utils/atomic_file.dart';
 
 class AppSettings {
   AppSettings._({
+    this.usagePolicy = false,
     this.ignoreSSLCertificate = false,
-    this.preferredVideoQuality,
-    this.fallbackVideoQuality,
-    this.animeDestination,
-    this.mangaDestination,
+    this.animePreferredQuality = '',
+    this.animeFallbackQuality = '',
+    this.animeDestination = '',
+    this.mangaDestination = '',
     this.mpvPath,
   });
 
-  factory AppSettings.defaultSettings() => AppSettings._();
+  factory AppSettings.defaultSettings() => AppSettings._(
+        animePreferredQuality: Quality.get(Qualities.q_720p).code,
+        animeFallbackQuality: Quality.get(Qualities.unknown).code,
+        animeDestination: Paths.uDownloadsDir,
+        mangaDestination: Paths.uDownloadsDir,
+      );
 
   factory AppSettings.fromJson(final Map<dynamic, dynamic> json) {
     final AppSettings d = AppSettings.defaultSettings();
 
     return AppSettings._(
+      usagePolicy: json['usagePolicy'] as bool? ?? d.usagePolicy,
       ignoreSSLCertificate:
           json['ignoreSSLCertificate'] as bool? ?? d.ignoreSSLCertificate,
-      preferredVideoQuality:
-          json['preferredVideoQuality'] as String? ?? d.preferredVideoQuality,
-      fallbackVideoQuality:
-          json['fallbackVideoQuality'] as String? ?? d.fallbackVideoQuality,
+      animePreferredQuality:
+          json['animePreferredQuality'] as String? ?? d.animePreferredQuality,
+      animeFallbackQuality:
+          json['animeFallbackQuality'] as String? ?? d.animeFallbackQuality,
       animeDestination:
           json['animeDestination'] as String? ?? d.animeDestination,
       mangaDestination:
@@ -33,17 +41,19 @@ class AppSettings {
     );
   }
 
+  bool usagePolicy;
   bool ignoreSSLCertificate;
-  String? preferredVideoQuality;
-  String? fallbackVideoQuality;
-  String? animeDestination;
-  String? mangaDestination;
+  String animePreferredQuality;
+  String animeFallbackQuality;
+  String animeDestination;
+  String mangaDestination;
   String? mpvPath;
 
   Map<dynamic, dynamic> toJson() => <dynamic, dynamic>{
+        'usagePolicy': usagePolicy,
         'ignoreSSLCertificate': ignoreSSLCertificate,
-        'preferredVideoQuality': preferredVideoQuality,
-        'fallbackVideoQuality': fallbackVideoQuality,
+        'animePreferredQuality': animePreferredQuality,
+        'animeFallbackQuality': animeFallbackQuality,
         'animeDestination': animeDestination,
         'mangaDestination': mangaDestination,
         'mpvPath': mpvPath,

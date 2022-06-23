@@ -2,7 +2,7 @@ import 'package:args/args.dart';
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
 import '../core/tenka.dart';
-import 'command_exception.dart';
+import 'exceptions.dart';
 
 class TenkaModuleArgs<T> {
   const TenkaModuleArgs({
@@ -37,7 +37,7 @@ class TenkaModuleArgs<T> {
       restArgs = allRestArgs;
     } else {
       if (allRestArgs.length < 2) {
-        throw CRTException.missingOption('module');
+        throw CommandException.missingOption('module');
       }
 
       moduleName = allRestArgs[0].toLowerCase();
@@ -45,10 +45,10 @@ class TenkaModuleArgs<T> {
     }
 
     final String? id = TenkaManager.repository.storeNameIdMap[moduleName];
-    if (id == null) throw CRTException('Invalid module: $moduleName');
+    if (id == null) throw CommandException('Invalid module: $moduleName');
 
     if (!TenkaManager.repository.installed.containsKey(id)) {
-      throw CRTException('Missing module: $moduleName');
+      throw CommandException('Missing module: $moduleName');
     }
 
     final TenkaMetadata metadata = TenkaManager.repository.installed[id]!;
@@ -57,13 +57,13 @@ class TenkaModuleArgs<T> {
     switch (type) {
       case TenkaType.anime:
         if (extractor is! AnimeExtractor) {
-          throw CRTException('Invalid module type: ${type.name}');
+          throw CommandException('Invalid module type: ${type.name}');
         }
         break;
 
       case TenkaType.manga:
         if (extractor is! MangaExtractor) {
-          throw CRTException('Invalid module type: ${type.name}');
+          throw CommandException('Invalid module type: ${type.name}');
         }
         break;
     }
@@ -72,7 +72,7 @@ class TenkaModuleArgs<T> {
       try {
         locale = Locale.parse(argResults['locale'] as String);
       } catch (_) {
-        throw CRTException('Invalid locale: ${argResults['locale']}');
+        throw CommandException('Invalid locale: ${argResults['locale']}');
       }
     } else if (extractor is AnimeExtractor) {
       locale = extractor.defaultLocale;

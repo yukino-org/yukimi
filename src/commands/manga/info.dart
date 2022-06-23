@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
@@ -6,36 +7,84 @@ import 'package:utilx/locale.dart';
 import '../../config/paths.dart';
 import '../../core/commander.dart';
 import '../../core/database/cache.dart';
-import '../../core/database/settings.dart';
 import '../../core/manager.dart';
-import '../../utils/command_exception.dart';
 import '../../utils/console.dart';
 import '../../utils/content_range.dart';
-import '../../utils/path.dart';
+import '../../utils/exceptions.dart';
+import '../../utils/others.dart';
 import '../../utils/tenka_module_args.dart';
 import '_utils.dart';
+
+class _Options extends CommandOptions {
+  const _Options(final ArgResults results) : super(results);
+
+  static const String kNoCache = 'no-cache';
+  bool get noCache => get<bool>(kNoCache);
+
+  static const String kDownload = 'download';
+  static const String kDownloadAbbr = 'd';
+  bool get download => get<bool>(kDownload);
+
+  static const String kRead = 'read';
+  static const String kReadAbbr = 'r';
+  static const List<String> kReadAliases = <String>['open', 'view'];
+  bool get read => get<bool>(kRead);
+
+  static const String kChapters = 'chapters';
+  static const String kChaptersAbbr = 'c';
+  static const List<String> kChaptersAliases = <String>[
+    'range',
+    'chapter',
+    'ch',
+    'chs'
+  ];
+  List<String>? get chapters =>
+      getNullable<List<dynamic>>(kChapters)?.cast<String>();
+
+  static const String kDestination = 'destination';
+  static const String kDestinationAbbr = 'o';
+  static const List<String> kDestinationAliases = <String>['outDir'];
+  String? get destination => getNullable(kDestination);
+
+  static const String kFilename = 'filename';
+  static const String kFilenameAbbr = 'n';
+  static const List<String> kFilenameAliases = <String>['file', 'name'];
+  String? get filename => getNullable(kFilename);
+}
 
 class MangaInfoCommand extends Command<void> {
   MangaInfoCommand() {
     TenkaModuleArgs.addOptions(argParser);
     argParser
-      ..addFlag('no-cache', negatable: false)
-      ..addFlag('download', abbr: 'd')
       ..addFlag(
-        'view',
-        abbr: 'v',
-        aliases: <String>['open'],
+        _Options.kNoCache,
+        negatable: false,
+      )
+      ..addFlag(
+        _Options.kDownload,
+        abbr: _Options.kDownloadAbbr,
+        negatable: false,
+      )
+      ..addFlag(
+        _Options.kRead,
+        abbr: _Options.kReadAbbr,
+        aliases: _Options.kReadAliases,
         negatable: false,
       )
       ..addMultiOption(
-        'chapters',
-        abbr: 'c',
-        aliases: <String>['chapter', 'ch', 'chs'],
+        _Options.kChapters,
+        abbr: _Options.kChaptersAbbr,
+        aliases: _Options.kChaptersAliases,
       )
       ..addOption(
-        'destination',
-        abbr: 'o',
-        aliases: <String>['outDir'],
+        _Options.kDestination,
+        abbr: _Options.kDestinationAbbr,
+        aliases: _Options.kDestinationAliases,
+      )
+      ..addOption(
+        _Options.kFilename,
+        abbr: _Options.kFilenameAbbr,
+        aliases: _Options.kFilenameAliases,
       );
   }
 
@@ -50,23 +99,22 @@ class MangaInfoCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<MangaExtractor> moduleArgs =
+    final _Options options = _Options(argResults!);
+
+    final TenkaModuleArgs<MangaExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
-    final ContentRange? range = argResults!.wasParsed('chapters')
-        ? ContentRange.parse(
-            (argResults!['chapters'] as List<dynamic>).cast<String>(),
-          )
+    final ContentRange? range =
+        options.chapters != null ? ContentRange.parse(options.chapters!) : null;
+
+    final MangaInfo? cached = !options.noCache
+        ? Cache.cache.getManga(mArgs.metadata.id, mArgs.terms)
         : null;
 
-    final MangaInfo? cached = argResults!['no-cache'] == false
-        ? Cache.cache.getManga(moduleArgs.metadata.id, moduleArgs.terms)
-        : null;
+    final MangaInfo info =
+        cached ?? await mArgs.extractor.getInfo(mArgs.terms, mArgs.locale);
 
-    final MangaInfo info = cached ??
-        await moduleArgs.extractor.getInfo(moduleArgs.terms, moduleArgs.locale);
-
-    await Cache.cache.saveManga(moduleArgs.metadata.id, info);
+    await Cache.cache.saveManga(mArgs.metadata.id, info);
 
     if (AppManager.isJsonMode) {
       printJson(info.toJson());
@@ -113,59 +161,70 @@ class MangaInfoCommand extends Command<void> {
       );
     }
 
-    final bool isDownload = argResults!['download'] as bool;
-    final bool isView = argResults!['view'] as bool;
-
-    if (isDownload || isView) {
+    if (options.download || options.read) {
       println();
 
-      if (isDownload) printHeading('Downloads');
+      if (options.download) printHeading('Downloads');
 
       if (selectedChapters.isEmpty) {
-        throw CRTException.missingOption('chapters');
+        throw CommandException.missingOption('chapters');
       }
 
-      if (isView && selectedChapters.length != 1) {
-        throw CRTException.invalidOption(
+      if (options.read && selectedChapters.length != 1) {
+        throw CommandException.invalidOption(
           'chapters (Only one chapter can be viewed at a time)',
         );
       }
 
-      final String? dDestination = argResults!.wasParsed('destination')
-          ? AppCommander.replaceArgVariables(
-              argResults!['destination'] as String,
-            )
-          : AppSettings.settings.mangaDestination;
-      if (isDownload && dDestination == null) {
-        throw CRTException.missingOption('destination');
-      }
+      final String destination = options.destination ??
+          path.join(
+            options.download
+                ? '\$${CommandArgumentTemplates.kSettingsMangaDir}}'
+                : Paths.tmpDir,
+            '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} (\${${CommandArgumentTemplates.kChapterLocaleCode}})',
+          );
 
-      final String fileNamePrefix =
-          '[${moduleArgs.metadata.name}] ${info.title}';
-      final String destination =
-          dDestination ?? path.join(Paths.tmpDir, fileNamePrefix);
+      final String filename = options.filename ??
+          '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}';
 
       for (final ChapterInfo x in selectedChapters) {
         print(
           '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
         );
 
+        final CommandArgumentTemplates argTemplates =
+            CommandArgumentTemplates.withDefaultTemplates(
+          <String, String>{
+            CommandArgumentTemplates.kMangaTitle: info.title,
+            CommandArgumentTemplates.kMangaURL: info.url,
+            CommandArgumentTemplates.kMangaLocale: info.locale.toPrettyString(),
+            CommandArgumentTemplates.kMangaLocaleCode:
+                info.locale.toCodeString(),
+            CommandArgumentTemplates.kVolumeNumber: x.volume ?? '-',
+            CommandArgumentTemplates.kChapterNumber: x.chapter,
+            CommandArgumentTemplates.kChapterLocale: x.locale.toPrettyString(),
+            CommandArgumentTemplates.kChapterLocaleCode:
+                x.locale.toCodeString(),
+            CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
+            CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
+          },
+        );
+
+        final String rDestination = argTemplates.replace(destination);
+        final String rFilename = argTemplates.replace(filename);
+
+        final String filePath = path.join(rDestination, '$rFilename.pdf');
+
         final List<PageInfo> pages =
-            await moduleArgs.extractor.getChapter(x.url, x.locale);
+            await mArgs.extractor.getChapter(x.url, x.locale);
 
         final String leftSpace =
             List<String>.filled(x.chapter.length + 2, ' ').join();
 
-        final String filePath = path.join(
-          destination,
-          fileNamePrefix,
-          '$fileNamePrefix - Chapter ${x.chapter}.pdf',
-        );
-
         await MangaDownloader.downloadAsPdf(
           leftSpace: leftSpace,
           pages: pages,
-          extractor: moduleArgs.extractor,
+          extractor: mArgs.extractor,
           getDestination: () => filePath,
         );
 
@@ -176,7 +235,7 @@ class MangaInfoCommand extends Command<void> {
               Dye.dye(filePath, 'darkGray/underline').toString(),
         );
 
-        if (isView) {
+        if (options.read) {
           final String fExecutable = getFileSystemExecutable();
           print(
             '${leftSpace}Opening ${Dye.dye('chapter ${x.chapter}', 'cyan')} in ${Dye.dye(fExecutable, 'cyan')}.',

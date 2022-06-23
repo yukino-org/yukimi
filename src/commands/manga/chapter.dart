@@ -20,11 +20,11 @@ class MangaChapterCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final TenkaModuleArgs<MangaExtractor> moduleArgs =
+    final TenkaModuleArgs<MangaExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
-    final List<PageInfo> results = await moduleArgs.extractor
-        .getChapter(moduleArgs.terms, moduleArgs.locale);
+    final List<PageInfo> results =
+        await mArgs.extractor.getChapter(mArgs.terms, mArgs.locale);
 
     if (AppManager.isJsonMode) {
       printJson(results.map((final PageInfo x) => x.toJson()).toList());
@@ -32,11 +32,11 @@ class MangaChapterCommand extends Command<void> {
     }
 
     printTitle('Chapter Pages');
-    print(DyeUtils.dyeKeyValue('URL', moduleArgs.terms));
+    print(DyeUtils.dyeKeyValue('URL', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
         'Locale',
-        moduleArgs.locale.toPrettyString(appendCode: true),
+        mArgs.locale.toPrettyString(appendCode: true),
       ),
     );
     println();

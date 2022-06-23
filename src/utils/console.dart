@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:colorize/colorize.dart';
 import 'package:utilx/utils.dart';
-import '../config/constants.dart';
-import '../config/meta.g.dart';
+import '../config/meta.dart';
 import '../core/manager.dart';
 
 abstract class Symbols {
@@ -73,7 +72,7 @@ void printHeading(final String heading) =>
 void printTitle([final String? title]) {
   print(
     Dye.dye(
-      '${Constants.appName} v${GeneratedAppMeta.version}',
+      '${AppMeta.name} v${GeneratedAppMeta.version}',
       'darkGray',
     ),
   );
