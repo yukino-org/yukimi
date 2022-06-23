@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
 import '../../config/paths.dart';
+import '../../core/commander.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
 import '../../core/manager.dart';
@@ -131,7 +132,9 @@ class MangaInfoCommand extends Command<void> {
       }
 
       final String? dDestination = argResults!.wasParsed('destination')
-          ? argResults!['destination'] as String
+          ? AppCommander.replaceArgVariables(
+              argResults!['destination'] as String,
+            )
           : AppSettings.settings.mangaDestination;
       if (isDownload && dDestination == null) {
         throw CRTException.missingOption('destination');
@@ -153,28 +156,24 @@ class MangaInfoCommand extends Command<void> {
         final String leftSpace =
             List<String>.filled(x.chapter.length + 2, ' ').join();
 
-        final String fDestination =
-            path.join(destination, 'Chapter ${x.chapter}');
+        final String filePath = path.join(
+          destination,
+          fileNamePrefix,
+          '$fileNamePrefix - Chapter ${x.chapter}.pdf',
+        );
 
-        await MangaDownloader.download(
+        await MangaDownloader.downloadAsPdf(
           leftSpace: leftSpace,
           pages: pages,
           extractor: moduleArgs.extractor,
-          getDestination: (final DLPageData res) {
-            final String filePath = path.join(
-              fDestination,
-              '$fileNamePrefix - Chapter ${x.chapter} - Page ${res.index + 1}.${res.mimeType}',
-            );
-
-            return filePath;
-          },
+          getDestination: () => filePath,
         );
 
         stdout.write('\r');
         print(
           leftSpace +
               Dye.dye('Output: ', 'darkGray').toString() +
-              Dye.dye(fDestination, 'darkGray/underline').toString(),
+              Dye.dye(filePath, 'darkGray/underline').toString(),
         );
 
         if (isView) {
@@ -184,7 +183,7 @@ class MangaInfoCommand extends Command<void> {
           );
           await Process.start(
             fExecutable,
-            <String>[fDestination],
+            <String>[filePath],
             mode: ProcessStartMode.detached,
           );
         }

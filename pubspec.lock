@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
+  barcode:
+    dependency: transitive
+    description:
+      name: barcode
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.1"
   characters:
     dependency: transitive
     description:
@@ -136,6 +143,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.1"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   js:
     dependency: transitive
     description:
@@ -192,6 +206,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.2"
+  path_parsing:
+    dependency: transitive
+    description:
+      name: path_parsing
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  pdf:
+    dependency: "direct main"
+    description:
+      name: pdf
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.8.1"
   petitparser:
     dependency: transitive
     description:
@@ -227,6 +255,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
+  qr:
+    dependency: transitive
+    description:
+      name: qr
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   quiver:
     dependency: transitive
     description:
@@ -319,5 +354,19 @@ packages:
       url: "https://github.com/yukino-org/packages.git"
     source: git
     version: "0.0.0"
+  vector_math:
+    dependency: transitive
+    description:
+      name: vector_math
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.2"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.0.1"
 sdks:
   dart: ">=2.16.0 <3.0.0"

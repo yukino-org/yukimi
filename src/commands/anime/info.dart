@@ -5,6 +5,7 @@ import 'package:dl/dl.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
+import '../../core/commander.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
 import '../../core/manager.dart';
@@ -144,7 +145,9 @@ class AnimeInfoCommand extends Command<void> {
       }
 
       final String? destination = argResults!.wasParsed('destination')
-          ? argResults!['destination'] as String
+          ? AppCommander.replaceArgVariables(
+              argResults!['destination'] as String,
+            )
           : AppSettings.settings.animeDestination;
       if (isDownload && destination == null) {
         throw CRTException.missingOption('destination');

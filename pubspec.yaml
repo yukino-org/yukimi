@@ -15,6 +15,7 @@ dependencies:
     http: ^0.13.4
     mime_type: ^1.0.0
     path: ^1.8.0
+    pdf: ^3.8.1
     shlex: ^2.0.2
     tenka:
         git:

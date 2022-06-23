@@ -8,7 +8,10 @@ class CRTException implements Exception {
       CRTException('Missing option: $option');
 
   factory CRTException.invalidOption(final String option) =>
-      CRTException('Missing option: $option');
+      CRTException('Invalid option: $option');
+
+  factory CRTException.unknownArgumentVariable(final String option) =>
+      CRTException('Unknown argument variable: $option');
 
   final String error;
 
