@@ -51,10 +51,14 @@ class CommandArgumentTemplates {
   static const String kAppVersion = 'app.version';
   static const String kSettingsAnimeDownloadDestination =
       'settings.anime.download.destination';
+  static const String kSettingsAnimeDownloadSubDestination =
+      'settings.anime.download.subdestination';
   static const String kSettingsAnimeDownloadFilename =
       'settings.anime.download.filename';
   static const String kSettingsMangaDownloadDestination =
       'settings.manga.download.destination';
+  static const String kSettingsMangaDownloadSubDestination =
+      'settings.manga.download.subdestination';
   static const String kSettingsMangaDownloadFilename =
       'settings.manga.download.filename';
   static const String kSettingsAnimePreferredQuality =
@@ -91,10 +95,14 @@ class CommandArgumentTemplates {
         kAppVersion: GeneratedAppMeta.version,
         kSettingsAnimeDownloadDestination:
             AppSettings.settings.animeDownloadDestination,
+        kSettingsAnimeDownloadSubDestination:
+            AppSettings.settings.animeDownloadSubDestination,
         kSettingsAnimeDownloadFilename:
             AppSettings.settings.animeDownloadFilename,
         kSettingsMangaDownloadDestination:
             AppSettings.settings.mangaDownloadDestination,
+        kSettingsMangaDownloadSubDestination:
+            AppSettings.settings.mangaDownloadSubDestination,
         kSettingsMangaDownloadFilename:
             AppSettings.settings.mangaDownloadFilename,
         kSettingsAnimePreferredQuality:
