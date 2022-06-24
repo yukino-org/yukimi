@@ -13,7 +13,7 @@ By using this project, you agree to the [usage policy](https://yukino-org.github
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Code Analysis](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/code-analysis.yml)
 [![Build (Artifacts)](https://github.com/yukino-org/yukimi/actions/workflows/build-artifacts.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/build-artifacts.yml)
-[![Release](https://github.com/yukino-org/yukimi/actions/workflows/release.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/release.yml)
+[![Release](https://github.com/yukino-org/yukimi/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/yukino-org/yukimi/actions/workflows/release.yml)
 
 ## Installation
 
