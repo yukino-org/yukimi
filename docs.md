@@ -11,12 +11,13 @@ Global options:
     --[no-]color    (defaults to on)
 
 Available commands:
-  anime      Anime related commands.
-  manga      Manga related commands.
-  settings   Display the app settings.
-  tenka      Tenka modules utility command.
-  terminal   Opens the app in a sub-terminal.
-  version    Display the app information.
+  agree-to-usage-policy   Agree the app's usage policy.
+  anime                   Anime related commands.
+  manga                   Manga related commands.
+  settings                Display the app settings.
+  tenka                   Tenka modules utility command.
+  terminal                Opens the app in a sub-terminal.
+  version                 Display the app information.
 
 Run "yukimi help <command>" for more information about a command.
 ```
@@ -28,6 +29,18 @@ Display help information for yukimi.
 
 Usage: yukimi help [command]
 -h, --help    Print this usage information.
+
+Run "yukimi help" to see global options.
+```
+
+## yukimi agree-to-usage-policy
+
+```
+Agree the app's usage policy.
+
+Usage: yukimi agree-to-usage-policy [arguments]
+-h, --help    Print this usage information.
+-y, --yes     
 
 Run "yukimi help" to see global options.
 ```
@@ -58,12 +71,13 @@ Usage: yukimi anime info [arguments]
 -l, --locale             
 -m, --module             
     --no-cache           
--d, --[no-]download      
+-d, --download           
 -p, --play               
 -e, --episodes           
 -o, --destination        
 -q, --quality            
     --fallbackQuality    
+-n, --filename           
 
 Run "yukimi help" to see global options.
 ```
@@ -117,14 +131,16 @@ Run "yukimi help" to see global options.
 Get information of an manga.
 
 Usage: yukimi manga info [arguments]
--h, --help             Print this usage information.
--l, --locale           
--m, --module           
-    --no-cache         
--d, --[no-]download    
--v, --view             
--c, --chapters         
--o, --destination      
+-h, --help               Print this usage information.
+-l, --locale             
+-m, --module             
+    --no-cache           
+-d, --download           
+-r, --read               
+-c, --chapters           
+-o, --destination        
+-n, --filename           
+-f, --download-format    [pdf (default), image]
 
 Run "yukimi help" to see global options.
 ```
@@ -236,12 +252,13 @@ Display the app settings.
 
 Usage: yukimi settings [arguments]
 -h, --help                         Print this usage information.
-    --[no-]default                 
+-r, --[no-]reset                   
     --[no-]ignoreSSLCertificate    
-    --[no-]setMpvPath              
-    --animeDestination             
-    --mangaDestination             
-    --customMpvPath                
+    --mpvPath                      
+    --animeDir                     
+    --mangaDir                     
+    --animePreferredQuality        
+    --animeFallbackQuality         
 
 Run "yukimi help" to see global options.
 ```
