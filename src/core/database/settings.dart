@@ -59,6 +59,7 @@ class AppSettings {
         'mpvPath': mpvPath,
       };
 
+  static bool ready = false;
   static late AppSettings settings;
 
   static Future<void> initialize() async {
@@ -72,6 +73,8 @@ class AppSettings {
         json.decode(await file.readAsString()) as Map<dynamic, dynamic>,
       );
     }
+
+    ready = true;
   }
 
   static Future<void> save() async {
