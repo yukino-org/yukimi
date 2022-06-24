@@ -4,7 +4,7 @@
 
 # Yukimi
 
-☄ Anime/Manga command-line interface backed up by Tenka.
+☄ Anime/Manga command-line interface backed up by [Tenka](https://github.com/yukino-org/tenka-store).
 
 By using this project, you agree to the [usage policy](https://yukino-org.github.io/wiki/tenka/disclaimer/).
 
