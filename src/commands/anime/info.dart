@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-import 'package:dl/dl.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
@@ -314,16 +313,11 @@ class AnimeInfoCommand extends Command<void> {
             leftSpace: leftSpace,
             url: source.url,
             headers: source.headers,
-            getDestination: (final DLResponse res) {
-              final String? fileExtension = getFileExtensionFromDLResponse(res);
-              if (fileExtension == null) {
-                throw CommandException(
-                  'Unable to find source type for episode ${x.episode}!',
-                );
-              }
-
+            getDestination: ({
+              required final String mimeType,
+            }) {
               final String filePath =
-                  path.join(rDestination, '$rFilename.$fileExtension');
+                  path.join(rDestination, '$rFilename.$mimeType');
 
               print(
                 leftSpace +

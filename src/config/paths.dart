@@ -70,7 +70,6 @@ abstract class Paths {
         uPicturesDir = Platform.environment['XDG_PICTURES_DIR'] ??
             await _onlyIfDirExists(path.join(_uHomeDir, 'Pictures')) ??
             _defaultMediaDir;
-        break;
     }
   }
 

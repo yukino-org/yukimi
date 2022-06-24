@@ -4,7 +4,9 @@ import 'package:tenka/tenka.dart';
 import '../../utils/others.dart';
 import '../../utils/progress_bar.dart';
 
-typedef GetDestinationFn = String Function(DLResponse);
+typedef GetDestinationFn = String Function({
+  required String mimeType,
+});
 
 class AnimeDownloader {
   static Future<void> download({
@@ -21,7 +23,9 @@ class AnimeDownloader {
       headers: headers,
     );
 
-    final File file = File(getDestination(dRes));
+    final File file = File(
+      getDestination(mimeType: getFileExtensionFromDLResponse(dRes)!),
+    );
     if (await file.exists()) {
       await file.delete(recursive: true);
     }

@@ -70,6 +70,7 @@ class CommandArgumentTemplates {
   static const String kChapterNumber = 'chapter.number';
   static const String kChapterLocale = 'chapter.locale';
   static const String kChapterLocaleCode = 'chapter.locale.code';
+  static const String kPageNumber = 'page.number';
   static const String kModuleName = 'extension.name';
   static const String kModuleId = 'extension.id';
 

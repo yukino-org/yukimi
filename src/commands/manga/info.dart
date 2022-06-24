@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
+import 'package:utilx/utils.dart';
 import '../../config/paths.dart';
 import '../../core/commander.dart';
 import '../../core/database/cache.dart';
@@ -14,6 +15,11 @@ import '../../utils/exceptions.dart';
 import '../../utils/others.dart';
 import '../../utils/tenka_module_args.dart';
 import '_utils.dart';
+
+enum _DownloadFormat {
+  pdf,
+  image,
+}
 
 class _Options extends CommandOptions {
   const _Options(final ArgResults results) : super(results);
@@ -50,6 +56,14 @@ class _Options extends CommandOptions {
   static const String kFilenameAbbr = 'n';
   static const List<String> kFilenameAliases = <String>['file', 'name'];
   String? get filename => getNullable(kFilename);
+
+  static const String kDownloadFormat = 'download-format';
+  static const String kDownloadFormatAbbr = 'f';
+  static const List<String> kDownloadFormatAliases = <String>['df'];
+  static final List<String> kDownloadFormatAllowed =
+      _DownloadFormat.values.map((final _DownloadFormat x) => x.name).toList();
+  static final String kDownloadFormatDefaultsTo = _DownloadFormat.pdf.name;
+  String get downloadFormat => get<String>(kDownloadFormat);
 }
 
 class MangaInfoCommand extends Command<void> {
@@ -85,6 +99,13 @@ class MangaInfoCommand extends Command<void> {
         _Options.kFilename,
         abbr: _Options.kFilenameAbbr,
         aliases: _Options.kFilenameAliases,
+      )
+      ..addOption(
+        _Options.kDownloadFormat,
+        abbr: _Options.kDownloadFormatAbbr,
+        aliases: _Options.kDownloadFormatAliases,
+        allowed: _Options.kDownloadFormatAllowed,
+        defaultsTo: _Options.kDownloadFormatDefaultsTo,
       );
   }
 
@@ -176,16 +197,36 @@ class MangaInfoCommand extends Command<void> {
         );
       }
 
-      final String destination = options.destination ??
-          path.join(
-            options.download
-                ? '\$${CommandArgumentTemplates.kSettingsMangaDir}}'
-                : Paths.tmpDir,
-            '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} (\${${CommandArgumentTemplates.kChapterLocaleCode}})',
-          );
+      final _DownloadFormat format =
+          EnumUtils.find(_DownloadFormat.values, options.downloadFormat);
 
-      final String filename = options.filename ??
+      final String destinationTemplate = path.join(
+        options.download
+            ? '\${${CommandArgumentTemplates.kSettingsMangaDir}}'
+            : Paths.tmpDir,
+        '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} (\${${CommandArgumentTemplates.kChapterLocaleCode}})',
+      );
+      const String filenameTemplate =
           '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}';
+
+      final String destination;
+      final String filename;
+
+      switch (format) {
+        case _DownloadFormat.image:
+          destination = options.destination ??
+              path.join(
+                destinationTemplate,
+                '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}',
+              );
+          filename = options.filename ??
+              'Page \${${CommandArgumentTemplates.kPageNumber}}';
+          break;
+
+        default:
+          destination = options.destination ?? destinationTemplate;
+          filename = options.filename ?? filenameTemplate;
+      }
 
       for (final ChapterInfo x in selectedChapters) {
         print(
@@ -210,10 +251,7 @@ class MangaInfoCommand extends Command<void> {
           },
         );
 
-        final String rDestination = argTemplates.replace(destination);
-        final String rFilename = argTemplates.replace(filename);
-
-        final String filePath = path.join(rDestination, '$rFilename.pdf');
+        String filePath;
 
         final List<PageInfo> pages =
             await mArgs.extractor.getChapter(x.url, x.locale);
@@ -221,12 +259,48 @@ class MangaInfoCommand extends Command<void> {
         final String leftSpace =
             List<String>.filled(x.chapter.length + 2, ' ').join();
 
-        await MangaDownloader.downloadAsPdf(
-          leftSpace: leftSpace,
-          pages: pages,
-          extractor: mArgs.extractor,
-          getDestination: () => filePath,
-        );
+        switch (format) {
+          case _DownloadFormat.pdf:
+            argTemplates.variables[CommandArgumentTemplates.kPageNumber] =
+                pages.length.toString();
+
+            filePath = argTemplates.replace(path.join(destination, filename));
+
+            await MangaDownloader.downloadAsPdf(
+              leftSpace: leftSpace,
+              pages: pages,
+              extractor: mArgs.extractor,
+              getDestination: ({
+                required final String mimeType,
+              }) =>
+                  filePath = argTemplates.replace('$filePath.$mimeType'),
+            );
+            break;
+
+          case _DownloadFormat.image:
+            filePath = argTemplates.replace(destination);
+
+            await MangaDownloader.downloadAsImages(
+              leftSpace: leftSpace,
+              pages: pages,
+              extractor: mArgs.extractor,
+              getDestination: ({
+                required final String mimeType,
+                required final int pageNumber,
+              }) {
+                argTemplates.variables[CommandArgumentTemplates.kPageNumber] =
+                    pageNumber.toString();
+
+                return argTemplates.replace(
+                  path.join(
+                    filePath,
+                    '$filename.$mimeType',
+                  ),
+                );
+              },
+            );
+            break;
+        }
 
         stdout.write('\r');
         print(
