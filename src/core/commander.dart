@@ -96,17 +96,14 @@ abstract class AppCommander {
       ..addFlag('json', negatable: false)
       ..addFlag('color', defaultsTo: true);
 
-    if (!AppSettings.settings.usagePolicy) {
-      runner.addCommand(AgreeToUsagePolicyCommand());
-    } else {
-      runner
-        ..addCommand(AnimeCommand())
-        ..addCommand(MangaCommand())
-        ..addCommand(TenkaCommand())
-        ..addCommand(SettingsCommand())
-        ..addCommand(TerminalCommand())
-        ..addCommand(VersionCommand());
-    }
+    runner
+      ..addCommand(AgreeToUsagePolicyCommand())
+      ..addCommand(AnimeCommand())
+      ..addCommand(MangaCommand())
+      ..addCommand(TenkaCommand())
+      ..addCommand(SettingsCommand())
+      ..addCommand(TerminalCommand())
+      ..addCommand(VersionCommand());
 
     return runner;
   }

@@ -36,7 +36,14 @@ class AgreeToUsagePolicyCommand extends Command<void> {
   final String description = "Agree the app's usage policy.";
 
   @override
+  bool get hidden => AppSettings.settings.usagePolicy;
+
+  @override
   Future<void> run() async {
+    if (AppSettings.settings.usagePolicy) {
+      return;
+    }
+
     final _Options options = _Options(argResults!);
 
     final Map<String, String> policies = <String, String>{
