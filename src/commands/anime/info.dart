@@ -44,8 +44,22 @@ class _Options extends CommandOptions {
 
   static const String kDestination = 'destination';
   static const String kDestinationAbbr = 'o';
-  static const List<String> kDestinationAliases = <String>['outDir'];
+  static const List<String> kDestinationAliases = <String>['outDir', 'dest'];
   String? get destination => getNullable(kDestination);
+
+  static const String kSubDestination = 'sub-destination';
+  static const String kSubDestinationAbbr = 's';
+  static const List<String> kSubDestinationAliases = <String>[
+    'sub-outDir',
+    's-outDir',
+    's-dest'
+  ];
+  String? get subDestination => getNullable(kSubDestination);
+
+  static const String kFilename = 'filename';
+  static const String kFilenameAbbr = 'n';
+  static const List<String> kFilenameAliases = <String>['file', 'name'];
+  String? get filename => getNullable(kFilename);
 
   static const String kQuality = 'quality';
   static const String kQualityAbbr = 'q';
@@ -54,11 +68,6 @@ class _Options extends CommandOptions {
   static const String kFallbackQuality = 'fallbackQuality';
   static const List<String> kFallbackQualityAliases = <String>['fq'];
   String? get fallbackQuality => getNullable(kFallbackQuality);
-
-  static const String kFilename = 'filename';
-  static const String kFilenameAbbr = 'n';
-  static const List<String> kFilenameAliases = <String>['file', 'name'];
-  String? get filename => getNullable(kFilename);
 }
 
 class AnimeInfoCommand extends Command<void> {
@@ -91,17 +100,22 @@ class AnimeInfoCommand extends Command<void> {
         aliases: _Options.kDestinationAliases,
       )
       ..addOption(
+        _Options.kSubDestination,
+        abbr: _Options.kSubDestinationAbbr,
+        aliases: _Options.kSubDestinationAliases,
+      )
+      ..addOption(
+        _Options.kFilename,
+        abbr: _Options.kFilenameAbbr,
+        aliases: _Options.kFilenameAliases,
+      )
+      ..addOption(
         _Options.kQuality,
         abbr: _Options.kQualityAbbr,
       )
       ..addOption(
         _Options.kFallbackQuality,
         aliases: _Options.kFallbackQualityAliases,
-      )
-      ..addOption(
-        _Options.kFilename,
-        abbr: _Options.kFilenameAbbr,
-        aliases: _Options.kFilenameAliases,
       );
   }
 
@@ -199,11 +213,14 @@ class AnimeInfoCommand extends Command<void> {
         );
       }
 
-      final String destination = options.destination ??
-          path.join(
-            '\$${CommandArgumentTemplates.kSettingsAnimeDir}}',
-            '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} (\${${CommandArgumentTemplates.kEpisodeLocaleCode}})',
-          );
+      final String destination =
+          options.destination ?? AppSettings.settings.animeDownloadDestination;
+
+      final String subDestination = options.subDestination ??
+          AppSettings.settings.animeDownloadSubDestination;
+
+      final String filename =
+          options.filename ?? AppSettings.settings.animeDownloadFilename;
 
       final String _preferredQuality =
           options.quality ?? AppSettings.settings.animePreferredQuality;
@@ -224,9 +241,6 @@ class AnimeInfoCommand extends Command<void> {
           '${_Options.kFallbackQuality} ($_fallbackQuality)',
         );
       }
-
-      final String filename = options.filename ??
-          '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} — Ep. \${${CommandArgumentTemplates.kEpisodeNumber}} (\${${CommandArgumentTemplates.kEpisodeQuality}})';
 
       for (final EpisodeInfo x in selectedEpisodes) {
         if (options.download) {
@@ -271,6 +285,7 @@ class AnimeInfoCommand extends Command<void> {
         );
 
         final String rDestination = argTemplates.replace(destination);
+        final String rSubDestination = argTemplates.replace(subDestination);
         final String rFilename = argTemplates.replace(filename);
 
         if (options.play) {
@@ -316,8 +331,11 @@ class AnimeInfoCommand extends Command<void> {
             getDestination: ({
               required final String mimeType,
             }) {
-              final String filePath =
-                  path.join(rDestination, '$rFilename.$mimeType');
+              final String filePath = path.join(
+                rDestination,
+                rSubDestination,
+                '$rFilename.$mimeType',
+              );
 
               print(
                 leftSpace +

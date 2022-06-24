@@ -8,6 +8,7 @@ import 'package:utilx/utils.dart';
 import '../../config/paths.dart';
 import '../../core/commander.dart';
 import '../../core/database/cache.dart';
+import '../../core/database/settings.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
 import '../../utils/content_range.dart';
@@ -49,8 +50,17 @@ class _Options extends CommandOptions {
 
   static const String kDestination = 'destination';
   static const String kDestinationAbbr = 'o';
-  static const List<String> kDestinationAliases = <String>['outDir'];
+  static const List<String> kDestinationAliases = <String>['outDir', 'dest'];
   String? get destination => getNullable(kDestination);
+
+  static const String kSubDestination = 'sub-destination';
+  static const String kSubDestinationAbbr = 's';
+  static const List<String> kSubDestinationAliases = <String>[
+    'sub-outDir',
+    's-outDir',
+    's-dest'
+  ];
+  String? get subDestination => getNullable(kSubDestination);
 
   static const String kFilename = 'filename';
   static const String kFilenameAbbr = 'n';
@@ -94,6 +104,11 @@ class MangaInfoCommand extends Command<void> {
         _Options.kDestination,
         abbr: _Options.kDestinationAbbr,
         aliases: _Options.kDestinationAliases,
+      )
+      ..addOption(
+        _Options.kSubDestination,
+        abbr: _Options.kSubDestinationAbbr,
+        aliases: _Options.kSubDestinationAliases,
       )
       ..addOption(
         _Options.kFilename,
@@ -200,32 +215,30 @@ class MangaInfoCommand extends Command<void> {
       final _DownloadFormat format =
           EnumUtils.find(_DownloadFormat.values, options.downloadFormat);
 
-      final String destinationTemplate = path.join(
-        options.download
-            ? '\${${CommandArgumentTemplates.kSettingsMangaDir}}'
-            : Paths.tmpDir,
-        '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} (\${${CommandArgumentTemplates.kChapterLocaleCode}})',
-      );
-      const String filenameTemplate =
-          '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}';
+      final String destinationTemplate = options.destination ??
+          (options.download
+              ? AppSettings.settings.mangaDownloadDestination
+              : Paths.tmpDir);
+      final String subDestinationTemplate = options.subDestination ??
+          AppSettings.settings.mangaDownloadSubDestination;
+      final String filenameTemplate =
+          options.filename ?? AppSettings.settings.mangaDownloadFilename;
 
       final String destination;
+      final String subDestination;
       final String filename;
 
       switch (format) {
         case _DownloadFormat.image:
-          destination = options.destination ??
-              path.join(
-                destinationTemplate,
-                '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}',
-              );
-          filename = options.filename ??
-              'Page \${${CommandArgumentTemplates.kPageNumber}}';
+          destination = destinationTemplate;
+          subDestination = path.join(subDestinationTemplate, filenameTemplate);
+          filename = '\${${CommandArgumentTemplates.kPageNumber}}';
           break;
 
         default:
-          destination = options.destination ?? destinationTemplate;
-          filename = options.filename ?? filenameTemplate;
+          destination = destinationTemplate;
+          subDestination = subDestinationTemplate;
+          filename = filenameTemplate;
       }
 
       for (final ChapterInfo x in selectedChapters) {
@@ -264,7 +277,8 @@ class MangaInfoCommand extends Command<void> {
             argTemplates.variables[CommandArgumentTemplates.kPageNumber] =
                 pages.length.toString();
 
-            filePath = argTemplates.replace(path.join(destination, filename));
+            filePath = argTemplates
+                .replace(path.join(destination, subDestination, filename));
 
             await MangaDownloader.downloadAsPdf(
               leftSpace: leftSpace,
@@ -278,7 +292,8 @@ class MangaInfoCommand extends Command<void> {
             break;
 
           case _DownloadFormat.image:
-            filePath = argTemplates.replace(destination);
+            filePath =
+                argTemplates.replace(path.join(destination, subDestination));
 
             await MangaDownloader.downloadAsImages(
               leftSpace: leftSpace,
