@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import '../../config/paths.dart';
 import '../../utils/atomic_file.dart';
@@ -44,10 +43,8 @@ class AppSettings {
             '\${${CommandArgumentTemplates.kSysDownloadsDir}}',
         animeDownloadSubDestination:
             '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} (\${${CommandArgumentTemplates.kEpisodeLocaleCode}})',
-        animeDownloadFilename: path.join(
-          '\${${CommandArgumentTemplates.kSysDownloadsDir}}',
-          '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} (\${${CommandArgumentTemplates.kEpisodeLocaleCode}})',
-        ),
+        animeDownloadFilename:
+            '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kAnimeTitle}} — Ep. \${${CommandArgumentTemplates.kEpisodeNumber}} (\${${CommandArgumentTemplates.kEpisodeQuality}})',
         mangaDownloadDestination:
             '\${${CommandArgumentTemplates.kSysDownloadsDir}}',
         mangaDownloadSubDestination:
@@ -77,7 +74,7 @@ class AppSettings {
           json[AppSettingsKeys.kAnimeDownloadSubDestination] as String? ??
               d.animeDownloadSubDestination,
       animeDownloadFilename:
-          json[AppSettingsKeys.kAnimeDownloadDestination] as String? ??
+          json[AppSettingsKeys.kAnimeDownloadFilename] as String? ??
               d.animeDownloadFilename,
       mangaDownloadDestination:
           json[AppSettingsKeys.kMangaDownloadDestination] as String? ??
