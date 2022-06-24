@@ -15,48 +15,11 @@ By using this project, you agree to the [usage policy](https://yukino-org.github
 [![Build (Artifacts)](https://github.com/yukino-org/yukimi/actions/workflows/build-artifacts.yml/badge.svg)](https://github.com/yukino-org/yukimi/actions/workflows/build-artifacts.yml)
 [![Release](https://github.com/yukino-org/yukimi/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/yukino-org/yukimi/actions/workflows/release.yml)
 
-## Installation
+## Getting Started
 
-Pre-built binaries are released in `dist-*` branches. To use these, you need to have [git](https://git-scm.com/) installed.
-
-### Clone this repository
-
-For Windows:
-
-```bash
-git clone https://github.com/yukino-org/yukimi.git -b dist-windows
-```
-
-For Linux:
-
-```bash
-git clone https://github.com/yukino-org/yukimi.git -b dist-linux
-```
-
-For MacOS:
-
-```bash
-git clone https://github.com/yukino-org/yukimi.git -b dist-macos
-```
-
-### Usage
-
-You can use `<path/to/executable> -t` to open a nested terminal. It is recommended to use commands within it for better performance.
-
--   Do:
-
-```bash
-yukimi -t
-> help
-> tenka installed
-```
-
--   Don't:
-
-```bash
-yukimi help
-yukimi tenka installed
-```
+-   [Installation](https://yukino-org.github.io/wiki/yukimi/installation/)
+-   [Basic Usage](https://yukino-org.github.io/wiki/yukimi/basic_usage/)
+-   [Advanced Usage](https://yukino-org.github.io/wiki/yukimi/advanced_usage/)
 
 ## Technology
 
