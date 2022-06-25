@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:dl/dl.dart';
 import 'package:tenka/tenka.dart';
+import 'package:utilx/utils.dart';
+import '../../utils/custom_args.dart';
 import '../../utils/others.dart';
 import '../../utils/progress_bar.dart';
 
@@ -24,7 +27,7 @@ class AnimeDownloader {
     );
 
     final File file = File(
-      getDestination(mimeType: getFileExtensionFromDLResponse(dRes)!),
+      getDestination(mimeType: resolveFileExtensionFromDLResponse(dRes)!),
     );
     if (await file.exists()) {
       await file.delete(recursive: true);
@@ -56,12 +59,60 @@ class AnimeDownloader {
 
     return const RawDLProvider();
   }
+
+  static String? resolveFileExtensionFromDLResponse(final DLResponse res) {
+    final String? value = getFileExtensionFromDLResponse(res);
+    return value == 'm3u8' ? 'mpeg' : value;
+  }
 }
 
-Qualities? resolveQuality(final String value) {
-  try {
-    return Quality.parse(value).quality;
-  } catch (_) {}
+EpisodeSource? _resolveEpisodeSourceIfCustomQuality(
+  final List<EpisodeSource> sources,
+  final Quality quality,
+) {
+  if (QualityArgs.customQualityCodes.contains(quality.code)) {
+    final CustomQualities customQuality =
+        EnumUtils.find(CustomQualities.values, quality.code);
+
+    switch (customQuality) {
+      case CustomQualities.best:
+        final EpisodeSource? picked = sources.firstOrNull;
+        return picked != null &&
+                _getWeightageFromQualityCode(picked.quality) != 0
+            ? picked
+            : null;
+
+      case CustomQualities.worst:
+        return sources.lastOrNull;
+    }
+  }
 
   return null;
+}
+
+int _getWeightageFromQualityCode(final Quality quality) =>
+    int.tryParse(quality.code.substring(0, quality.code.length - 1)) ?? 0;
+
+EpisodeSource? resolveEpisodeSource({
+  required final List<EpisodeSource> sources,
+  required final Quality preferredQuality,
+  required final Quality fallbackQuality,
+}) {
+  final List<EpisodeSource> sorted = (<EpisodeSource>[...sources]..sort(
+          (final EpisodeSource a, final EpisodeSource b) =>
+              _getWeightageFromQualityCode(a.quality)
+                  .compareTo(_getWeightageFromQualityCode(b.quality)),
+        ))
+      .reversed
+      .toList();
+
+  return _resolveEpisodeSourceIfCustomQuality(sorted, preferredQuality) ??
+      sorted.firstWhereOrNull(
+        (final EpisodeSource x) =>
+            x.quality.quality == preferredQuality.quality,
+      ) ??
+      _resolveEpisodeSourceIfCustomQuality(sorted, fallbackQuality) ??
+      sorted.firstWhereOrNull(
+        (final EpisodeSource x) => x.quality.quality == fallbackQuality.quality,
+      );
 }

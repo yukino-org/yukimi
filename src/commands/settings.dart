@@ -4,6 +4,7 @@ import '../core/commander.dart';
 import '../core/database/settings.dart';
 import '../core/manager.dart';
 import '../utils/console.dart';
+import '../utils/custom_args.dart';
 
 class _Options extends CommandOptions {
   const _Options(final ArgResults results) : super(results);
@@ -63,11 +64,15 @@ class _Options extends CommandOptions {
 
   static const String kAnimePreferredQuality =
       AppSettingsKeys.kAnimePreferredQuality;
+  static final List<String> kAnimePreferredQualityAllowed =
+      QualityArgs.allQualityCodes;
   String? get animePreferredQuality =>
       getNullable<String>(kAnimePreferredQuality);
 
   static const String kAnimeFallbackQuality =
       AppSettingsKeys.kAnimeFallbackQuality;
+  static final List<String> kAnimeFallbackQualityAllowed =
+      kAnimePreferredQualityAllowed;
   String? get animeFallbackQuality =>
       getNullable<String>(kAnimeFallbackQuality);
 }
@@ -84,6 +89,7 @@ class SettingsCommand extends Command<void> {
       ..addFlag(
         _Options.kResetAll,
         aliases: _Options.kResetAllAliases,
+        negatable: false,
       )
       ..addFlag(
         _Options.kIgnoreSSLCertificate,
@@ -96,8 +102,14 @@ class SettingsCommand extends Command<void> {
       ..addOption(_Options.kMangaDownloadDestination)
       ..addOption(_Options.kMangaDownloadSubDestination)
       ..addOption(_Options.kMangaDownloadFilename)
-      ..addOption(_Options.kAnimePreferredQuality)
-      ..addOption(_Options.kAnimeFallbackQuality);
+      ..addOption(
+        _Options.kAnimePreferredQuality,
+        allowed: _Options.kAnimePreferredQualityAllowed,
+      )
+      ..addOption(
+        _Options.kAnimeFallbackQuality,
+        allowed: _Options.kAnimeFallbackQualityAllowed,
+      );
   }
 
   @override

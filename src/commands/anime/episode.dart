@@ -2,7 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:tenka/tenka.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
-import '../../utils/tenka_module_args.dart';
+import '../../utils/custom_args.dart';
 
 class AnimeEpisodeCommand extends Command<void> {
   AnimeEpisodeCommand() {

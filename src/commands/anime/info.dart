@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
@@ -11,9 +10,9 @@ import '../../core/database/settings.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
 import '../../utils/content_range.dart';
+import '../../utils/custom_args.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/others.dart';
-import '../../utils/tenka_module_args.dart';
 import '_utils.dart';
 
 class _Options extends CommandOptions {
@@ -63,10 +62,12 @@ class _Options extends CommandOptions {
 
   static const String kQuality = 'quality';
   static const String kQualityAbbr = 'q';
+  static final List<String> kQualityAllowed = QualityArgs.allQualityCodes;
   String? get quality => getNullable(kQuality);
 
   static const String kFallbackQuality = 'fallbackQuality';
   static const List<String> kFallbackQualityAliases = <String>['fq'];
+  static final List<String> kFallbackQualityAllowed = kQualityAllowed;
   String? get fallbackQuality => getNullable(kFallbackQuality);
 }
 
@@ -112,10 +113,12 @@ class AnimeInfoCommand extends Command<void> {
       ..addOption(
         _Options.kQuality,
         abbr: _Options.kQualityAbbr,
+        allowed: _Options.kQualityAllowed,
       )
       ..addOption(
         _Options.kFallbackQuality,
         aliases: _Options.kFallbackQualityAliases,
+        allowed: _Options.kFallbackQualityAllowed,
       );
   }
 
@@ -198,13 +201,14 @@ class AnimeInfoCommand extends Command<void> {
       );
     }
 
-    if (options.download || options.play) {
+    if (selectedEpisodes.isNotEmpty) {
       println();
 
-      if (options.download) printHeading('Downloads');
-
-      if (selectedEpisodes.isEmpty) {
-        throw CommandException.missingOption('episodes');
+      if (options.download) {
+        printHeading('Downloads');
+      } else if (options.play) {
+      } else {
+        printHeading('Sources');
       }
 
       if (options.play && selectedEpisodes.length != 1) {
@@ -224,40 +228,25 @@ class AnimeInfoCommand extends Command<void> {
 
       final String _preferredQuality =
           options.quality ?? AppSettings.settings.animePreferredQuality;
-      final Qualities? preferredQuality = resolveQuality(_preferredQuality);
+      final Quality preferredQuality = QualityArgs.parse(_preferredQuality);
 
       final String _fallbackQuality =
           options.fallbackQuality ?? AppSettings.settings.animeFallbackQuality;
-      final Qualities? fallbackQuality = resolveQuality(_fallbackQuality);
-
-      if (preferredQuality == null) {
-        throw CommandException.invalidOption(
-          '${_Options.kQuality} ($_preferredQuality)',
-        );
-      }
-
-      if (fallbackQuality == null) {
-        throw CommandException.invalidOption(
-          '${_Options.kFallbackQuality} ($_fallbackQuality)',
-        );
-      }
+      final Quality fallbackQuality = QualityArgs.parse(_fallbackQuality);
 
       for (final EpisodeInfo x in selectedEpisodes) {
-        if (options.download) {
-          print(
-            '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
-          );
-        }
+        print(
+          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+        );
 
-        final List<EpisodeSource> episode =
+        final List<EpisodeSource> sources =
             await mArgs.extractor.getSources(x.url, x.locale);
 
-        final EpisodeSource? source = episode.firstWhereOrNull(
-              (final EpisodeSource x) => x.quality.quality == preferredQuality,
-            ) ??
-            episode.firstWhereOrNull(
-              (final EpisodeSource x) => x.quality.quality == fallbackQuality,
-            );
+        final EpisodeSource? source = resolveEpisodeSource(
+          sources: sources,
+          preferredQuality: preferredQuality,
+          fallbackQuality: fallbackQuality,
+        );
 
         if (source == null) {
           throw CommandException(
@@ -288,6 +277,27 @@ class AnimeInfoCommand extends Command<void> {
         final String rSubDestination = argTemplates.replace(subDestination);
         final String rFilename = argTemplates.replace(filename);
 
+        final String leftSpace =
+            List<String>.filled(x.episode.length + 2, ' ').join();
+
+        print(
+          leftSpace +
+              Dye.dye('Quality: ', 'darkGray').toString() +
+              Dye.dye(source.quality.code, 'darkGray').toString(),
+        );
+        print(leftSpace + Dye.dye('Source: ', 'darkGray').toString());
+        print(
+          leftSpace +
+              Dye.dye('  URL: ', 'darkGray').toString() +
+              Dye.dye(source.url, 'darkGray/underline').toString(),
+        );
+        if (source.headers.isNotEmpty) {
+          print(leftSpace + Dye.dye('  Headers: ', 'darkGray').toString());
+          source.headers.forEach((final String k, final String v) {
+            print(leftSpace + Dye.dye('    $k: $v', 'darkGray').toString());
+          });
+        }
+
         if (options.play) {
           final String? mpvPath =
               AppSettings.settings.mpvPath ?? await getMpvPath();
@@ -295,6 +305,7 @@ class AnimeInfoCommand extends Command<void> {
             throw const CommandException('No mpv path was set in settings');
           }
 
+          println();
           print(
             'Opening ${Dye.dye('episode ${x.episode}', 'cyan')} in ${Dye.dye('mpv', 'cyan')}.',
           );
@@ -314,16 +325,6 @@ class AnimeInfoCommand extends Command<void> {
         }
 
         if (options.download) {
-          final String leftSpace =
-              List<String>.filled(x.episode.length + 2, ' ').join();
-
-          print(
-            leftSpace +
-                Dye.dye('Source: ', 'darkGray').toString() +
-                Dye.dye(source.url, 'darkGray/underline').toString() +
-                Dye.dye(' (${source.quality.code})', 'darkGray').toString(),
-          );
-
           await AnimeDownloader.download(
             leftSpace: leftSpace,
             url: source.url,
@@ -339,8 +340,8 @@ class AnimeInfoCommand extends Command<void> {
 
               print(
                 leftSpace +
-                    Dye.dye('Output: ', 'darkGray').toString() +
-                    Dye.dye(filePath, 'darkGray/underline').toString(),
+                    Dye.dye('Output: ', 'default').toString() +
+                    Dye.dye(filePath, 'cyan/underline').toString(),
               );
 
               return filePath;

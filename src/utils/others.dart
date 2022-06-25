@@ -10,7 +10,7 @@ enum SupportedPlatforms {
 }
 
 final List<String> knownFileExtensions =
-    'mp4,mp3,mpeg,ts,3gp,mov,mkv,webm,flv,avi,png,jpg,jpeg,gif,svg,bmp'
+    'mp4,mp3,mpeg,ts,3gp,mov,mkv,webm,flv,avi,png,jpg,jpeg,gif,svg,bmp,m3u8'
         .split(',');
 
 SupportedPlatforms getCurrentPlatform() {

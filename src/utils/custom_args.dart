@@ -4,6 +4,43 @@ import 'package:utilx/locale.dart';
 import '../core/tenka.dart';
 import 'exceptions.dart';
 
+enum CustomQualities {
+  best,
+  worst,
+}
+
+abstract class QualityArgs {
+  static final Map<CustomQualities, Quality> customQualities =
+      CustomQualities.values.asMap().map(
+            (final int _, final CustomQualities x) =>
+                MapEntry<CustomQualities, Quality>(
+              x,
+              Quality(Qualities.unknown, x.name, x.name),
+            ),
+          );
+
+  static final List<String> customQualityCodes =
+      CustomQualities.values.map((final CustomQualities x) => x.name).toList();
+
+  static final List<String> allQualityCodes = <String>[
+    ...customQualityCodes,
+    ...Quality.qualities.values.map((final Quality x) => x.code),
+  ];
+
+  static Quality parse(final String value) {
+    if (customQualityCodes.contains(value)) {
+      return customQualities.entries
+          .firstWhere(
+            (final MapEntry<CustomQualities, Quality> x) =>
+                x.value.code == value,
+          )
+          .value;
+    }
+
+    return Quality.parse(value);
+  }
+}
+
 class TenkaModuleArgs<T> {
   const TenkaModuleArgs({
     required this.metadata,

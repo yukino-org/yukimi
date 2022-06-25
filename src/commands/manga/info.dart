@@ -12,9 +12,9 @@ import '../../core/database/settings.dart';
 import '../../core/manager.dart';
 import '../../utils/console.dart';
 import '../../utils/content_range.dart';
+import '../../utils/custom_args.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/others.dart';
-import '../../utils/tenka_module_args.dart';
 import '_utils.dart';
 
 enum _DownloadFormat {
