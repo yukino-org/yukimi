@@ -155,7 +155,7 @@ class AnimeInfoCommand extends Command<void> {
       return;
     }
 
-    printTitle('Anime Information');
+    printHeading('Anime Information');
     print(DyeUtils.dyeKeyValue('Title', info.title));
     print(
       DyeUtils.dyeKeyValue(
@@ -191,7 +191,7 @@ class AnimeInfoCommand extends Command<void> {
       }
 
       print(
-        '$i ${Dye.dye(x.url, 'cyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
       );
     }
 
@@ -236,7 +236,7 @@ class AnimeInfoCommand extends Command<void> {
 
       for (final EpisodeInfo x in selectedEpisodes) {
         print(
-          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
         );
 
         final List<EpisodeSource> sources =
@@ -282,19 +282,19 @@ class AnimeInfoCommand extends Command<void> {
 
         print(
           leftSpace +
-              Dye.dye('Quality: ', 'darkGray').toString() +
-              Dye.dye(source.quality.code, 'darkGray').toString(),
+              Dye.dye('Quality: ', 'dark').toString() +
+              Dye.dye(source.quality.code, 'dark').toString(),
         );
-        print(leftSpace + Dye.dye('Source: ', 'darkGray').toString());
+        print(leftSpace + Dye.dye('Source: ', 'dark').toString());
         print(
           leftSpace +
-              Dye.dye('  URL: ', 'darkGray').toString() +
-              Dye.dye(source.url, 'darkGray/underline').toString(),
+              Dye.dye('  URL: ', 'dark').toString() +
+              Dye.dye(source.url, 'dark/underline').toString(),
         );
         if (source.headers.isNotEmpty) {
-          print(leftSpace + Dye.dye('  Headers: ', 'darkGray').toString());
+          print(leftSpace + Dye.dye('  Headers: ', 'dark').toString());
           source.headers.forEach((final String k, final String v) {
-            print(leftSpace + Dye.dye('    $k: $v', 'darkGray').toString());
+            print(leftSpace + Dye.dye('    $k: $v', 'dark').toString());
           });
         }
 
@@ -307,7 +307,7 @@ class AnimeInfoCommand extends Command<void> {
 
           println();
           print(
-            'Opening ${Dye.dye('episode ${x.episode}', 'cyan')} in ${Dye.dye('mpv', 'cyan')}.',
+            'Opening ${Dye.dye('episode ${x.episode}', 'lightCyan')} in ${Dye.dye('mpv', 'lightCyan')}.',
           );
 
           await Process.start(
@@ -341,7 +341,7 @@ class AnimeInfoCommand extends Command<void> {
               print(
                 leftSpace +
                     Dye.dye('Output: ', 'default').toString() +
-                    Dye.dye(filePath, 'cyan/underline').toString(),
+                    Dye.dye(filePath, 'lightMagenta/underline').toString(),
               );
 
               return filePath;

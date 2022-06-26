@@ -24,7 +24,7 @@ const int kFailureExitCode = 1;
 abstract class AppManager {
   static bool initialized = false;
   static bool disposed = false;
-  static bool checkedForUpdates = false;
+  static bool greeted = false;
 
   static late CommandRunner<void> runner;
   static ArgResults? globalArgResults;
@@ -61,16 +61,13 @@ abstract class AppManager {
           'You must agree to the usage policy to use this application.',
         );
         print(
-          'Run the ${Dye.dye(kAgreeToUsagePolicyCommand, 'cyan')} command to agree to the usage policy.',
+          'Run the ${Dye.dye(kAgreeToUsagePolicyCommand, 'lightCyan')} command to agree to the usage policy.',
         );
 
         return kFailureExitCode;
       }
 
-      if (!isAgreeToUsagePolicyCommand) {
-        await checkForUpdates();
-      }
-
+      await greet();
       await runner.runCommand(globalArgResults!);
 
       return kSuccessExitCode;
@@ -109,9 +106,23 @@ abstract class AppManager {
     await Future.wait(pendingCriticals);
   }
 
-  static Future<void> checkForUpdates() async {
-    if (isJsonMode || checkedForUpdates) return;
+  static Future<void> greet() async {
+    if (isJsonMode || greeted) return;
 
+    printAligned(
+      Dye.dye('${AppMeta.name} v${GeneratedAppMeta.version}', 'lightCyan')
+          .toString(),
+    );
+    printAligned(
+      Dye.dye(AppMeta.github, 'dark/underline').toString(),
+    );
+    println();
+
+    await checkForUpdates();
+    greeted = true;
+  }
+
+  static Future<void> checkForUpdates() async {
     try {
       final http.Response resp =
           await http.get(Uri.parse(AppMeta.lastestVersionEndpoint));
@@ -119,14 +130,14 @@ abstract class AppManager {
       final String latestVersion = resp.body;
       if (GeneratedAppMeta.version != latestVersion) {
         print(
-          'New version available! ${Dye.dye(GeneratedAppMeta.version, 'cyan')} -> ${Dye.dye(latestVersion, 'cyan')}\n',
+          'New version available! (${Dye.dye(GeneratedAppMeta.version, 'lightCyan')} -> ${Dye.dye(latestVersion, 'lightCyan')})',
         );
+        println();
       }
     } catch (_) {
-      printWarning('Failed to check for updates.\n');
+      printWarning('Failed to check for updates.');
+      println();
     }
-
-    checkedForUpdates = true;
   }
 
   static bool get isJsonMode => globalArgResults!['json'] as bool;

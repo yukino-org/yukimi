@@ -18,11 +18,11 @@ class TerminalCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    print(Dye.dye('Type $exitCommand to exit the terminal', 'darkGray'));
+    print(Dye.dye('Type $exitCommand to exit the terminal', 'dark'));
 
     bool proceed = true;
     while (proceed) {
-      stdout.write(Dye.dye('> ', 'darkGray'));
+      stdout.write(Dye.dye('> ', 'dark'));
       final String? line = stdin.readLineSync();
 
       if (line == exitCommand) {

@@ -28,7 +28,7 @@ class InstalledModulesCommand extends Command<void> {
       return;
     }
 
-    printTitle('Installed Tenka Modules');
+    printHeading('Installed Tenka Modules');
 
     int i = 1;
     for (final TenkaMetadata x in TenkaManager.repository.installed.values) {

@@ -63,16 +63,16 @@ class AgreeToUsagePolicyCommand extends Command<void> {
       return;
     }
 
-    printTitle('Usage Policy');
+    printHeading('Usage Policy');
     print('By using this application, you agree to the below usage policies.');
     policies.forEach(
       (final String k, final String v) => print(
         <String>[
-          Dye.dye('*', 'darkGray').toString(),
-          Dye.dye(k, 'cyan').toString(),
-          Dye.dye('(', 'darkGray').toString() +
-              Dye.dye(v, 'darkGray/underline').toString() +
-              Dye.dye(')', 'darkGray').toString(),
+          Dye.dye('*', 'dark').toString(),
+          Dye.dye(k, 'lightCyan').toString(),
+          Dye.dye('(', 'dark').toString() +
+              Dye.dye(v, 'dark/underline').toString() +
+              Dye.dye(')', 'dark').toString(),
         ].join(' '),
       ),
     );
@@ -92,7 +92,7 @@ class AgreeToUsagePolicyCommand extends Command<void> {
     await AppSettings.save();
 
     print(
-      'Welcome dear weeb! You can get started by running the ${Dye.dye('help', 'cyan')} command. For more information, check out our guides!',
+      'Welcome dear weeb! You can get started by running the ${Dye.dye('help', 'lightCyan')} command. For more information, check out our guides!',
     );
   }
 }

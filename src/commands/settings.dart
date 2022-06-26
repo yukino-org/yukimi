@@ -223,7 +223,7 @@ class SettingsCommand extends Command<void> {
       await AppSettings.save();
     }
 
-    printTitle('Settings');
+    printHeading('Settings');
 
     final Map<String, String> mapped = <String, String>{
       'Ignore SSL Certificate':

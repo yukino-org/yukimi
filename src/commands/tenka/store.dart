@@ -30,7 +30,7 @@ class TenkaStoreCommand extends Command<void> {
       return;
     }
 
-    printTitle('Available Tenka Modules');
+    printHeading('Available Tenka Modules');
 
     int i = 1;
     for (final TenkaMetadata x

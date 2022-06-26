@@ -43,7 +43,7 @@ class UninstallModulesCommand extends Command<void> {
       return;
     }
 
-    printTitle('Uninstalled');
+    printHeading('Uninstalled');
 
     int i = 1;
     for (final TenkaMetadata x in uninstalled) {

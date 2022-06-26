@@ -31,7 +31,7 @@ class MangaChapterCommand extends Command<void> {
       return;
     }
 
-    printTitle('Chapter Pages');
+    printHeading('Chapter Pages');
     print(DyeUtils.dyeKeyValue('URL', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(

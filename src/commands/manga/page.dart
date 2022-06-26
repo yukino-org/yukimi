@@ -31,7 +31,7 @@ class MangaPageCommand extends Command<void> {
       return;
     }
 
-    printTitle('Chapter Page');
+    printHeading('Chapter Page');
     print(DyeUtils.dyeKeyValue('URL', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
@@ -51,7 +51,7 @@ class MangaPageCommand extends Command<void> {
     print(DyeUtils.dyeKeyValue('Headers', ''));
     result.headers.forEach((final String key, final String value) {
       print(
-        '  ${Dye.dye('-', 'darkGray')} ${DyeUtils.dyeKeyValue(key, value)}',
+        '  ${Dye.dye('-', 'dark')} ${DyeUtils.dyeKeyValue(key, value)}',
       );
     });
   }

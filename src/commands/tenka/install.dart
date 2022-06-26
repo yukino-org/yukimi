@@ -42,7 +42,7 @@ class InstallModulesCommand extends Command<void> {
       return;
     }
 
-    printTitle('Installed');
+    printHeading('Installed');
 
     int i = 1;
     for (final TenkaMetadata x in installed) {

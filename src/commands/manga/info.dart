@@ -157,7 +157,7 @@ class MangaInfoCommand extends Command<void> {
       return;
     }
 
-    printTitle('Manga Information');
+    printHeading('Manga Information');
     print(DyeUtils.dyeKeyValue('Title', info.title));
     print(
       DyeUtils.dyeKeyValue(
@@ -193,7 +193,7 @@ class MangaInfoCommand extends Command<void> {
       }
 
       print(
-        '$i ${Dye.dye(x.url, 'cyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
       );
     }
 
@@ -243,7 +243,7 @@ class MangaInfoCommand extends Command<void> {
 
       for (final ChapterInfo x in selectedChapters) {
         print(
-          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
         );
 
         final CommandArgumentTemplates argTemplates =
@@ -320,14 +320,14 @@ class MangaInfoCommand extends Command<void> {
         stdout.write('\r');
         print(
           leftSpace +
-              Dye.dye('Output: ', 'darkGray').toString() +
-              Dye.dye(filePath, 'darkGray/underline').toString(),
+              Dye.dye('Output: ', 'dark').toString() +
+              Dye.dye(filePath, 'dark/underline').toString(),
         );
 
         if (options.read) {
           final String fExecutable = getFileSystemExecutable();
           print(
-            '${leftSpace}Opening ${Dye.dye('chapter ${x.chapter}', 'cyan')} in ${Dye.dye(fExecutable, 'cyan')}.',
+            '${leftSpace}Opening ${Dye.dye('chapter ${x.chapter}', 'lightCyan')} in ${Dye.dye(fExecutable, 'lightCyan')}.',
           );
           await Process.start(
             fExecutable,

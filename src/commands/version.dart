@@ -26,7 +26,7 @@ class VersionCommand extends Command<void> {
       return;
     }
 
-    printTitle('Information');
+    printHeading('Information');
     print(DyeUtils.dyeKeyValue('Version', 'v${GeneratedAppMeta.version}'));
     print(
       DyeUtils.dyeKeyValue(

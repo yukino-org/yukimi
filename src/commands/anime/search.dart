@@ -31,7 +31,7 @@ class AnimeSearchCommand extends Command<void> {
       return;
     }
 
-    printTitle('Anime Search');
+    printHeading('Anime Search');
     print(DyeUtils.dyeKeyValue('Terms', mArgs.terms));
     print(
       DyeUtils.dyeKeyValue(
@@ -45,9 +45,9 @@ class AnimeSearchCommand extends Command<void> {
     int i = 1;
     for (final SearchInfo x in results) {
       print(
-        '$i. ${Dye.dye(x.title, 'cyan')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'darkGray')}',
+        '$i. ${Dye.dye(x.title, 'lightCyan')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
       );
-      print('   ${Dye.dye(x.url, 'darkGray/underline')}');
+      print('   ${Dye.dye(x.url, 'dark/underline')}');
 
       i++;
     }

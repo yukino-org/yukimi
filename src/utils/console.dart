@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:colorize/colorize.dart';
 import 'package:utilx/utils.dart';
-import '../config/meta.dart';
 import '../core/manager.dart';
 
 abstract class Symbols {
@@ -58,7 +58,7 @@ abstract class DyeUtils {
       '$key: ${Dye.dye(
         value,
         <String>[
-          'cyan',
+          'lightCyan',
           if (additionalValueStyles != null) additionalValueStyles
         ].join('/'),
       )}';
@@ -69,16 +69,82 @@ void printJson(final dynamic text) => print(json.encode(text));
 void printHeading(final String heading) =>
     print(Dye.dye(heading, 'white/underline'));
 
-void printTitle([final String? title]) {
-  print(
-    Dye.dye(
-      '${AppMeta.name} v${GeneratedAppMeta.version}',
-      'darkGray',
-    ),
-  );
+String escapeANSI(final String text) => text.replaceAll(
+      RegExp(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]'),
+      '',
+    );
 
-  if (title != null) {
-    printHeading(title);
+TwinTuple<String, String> _wrapTextWithinWidth(
+  final String text,
+  final int width, [
+  final String seperator = ' ',
+]) {
+  final List<String> split = text.split(seperator);
+  final StringBuffer out = StringBuffer();
+
+  while (split.isNotEmpty) {
+    final String x = split.first;
+
+    if (x.length + out.length + seperator.length > width) {
+      if (out.isEmpty) {
+        out.write(x.substring(0, width) + seperator);
+        split[0] = x.substring(width);
+      }
+
+      break;
+    }
+
+    out.write(x + seperator);
+    split.removeAt(0);
+  }
+
+  return TwinTuple<String, String>(
+    out.toString().trim(),
+    split.join(seperator),
+  );
+}
+
+enum PrintAlignment {
+  left,
+  center,
+  right,
+}
+
+void printAligned(
+  final String text, [
+  final PrintAlignment alignment = PrintAlignment.center,
+  final String seperator = ' ',
+]) {
+  final int maxWidth = stdout.terminalColumns;
+  String remaining = text;
+
+  while (remaining.isNotEmpty) {
+    final TwinTuple<String, String> parsed =
+        _wrapTextWithinWidth(remaining, maxWidth, seperator);
+
+    final int remainingWidth = maxWidth - escapeANSI(parsed.first).length;
+    final int leftWidth;
+    final int rightWidth;
+
+    switch (alignment) {
+      case PrintAlignment.left:
+        leftWidth = 0;
+        rightWidth = remainingWidth;
+        break;
+
+      case PrintAlignment.center:
+        leftWidth = (remainingWidth / 2).floor();
+        rightWidth = remainingWidth - leftWidth;
+        break;
+
+      case PrintAlignment.right:
+        leftWidth = remainingWidth;
+        rightWidth = 0;
+        break;
+    }
+
+    print(seperator * leftWidth + parsed.first + seperator * rightWidth);
+    remaining = parsed.last;
   }
 }
 
@@ -91,7 +157,7 @@ void printWarning(final String value) {
 void printError(final Object error, [final StackTrace? stack]) {
   print(Dye.dye(error.toString(), 'lightRed'));
   if (stack != null) {
-    print(Dye.dye(stack.toString(), 'darkGray'));
+    print(Dye.dye(stack.toString(), 'dark'));
   }
 }
 
