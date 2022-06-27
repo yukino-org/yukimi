@@ -69,6 +69,13 @@ class _Options extends CommandOptions {
   static const List<String> kFallbackQualityAliases = <String>['fq'];
   static final List<String> kFallbackQualityAllowed = kQualityAllowed;
   String? get fallbackQuality => getNullable(kFallbackQuality);
+
+  static const String kSearch = 'search';
+  bool get search => get<bool>(kSearch);
+
+  static const String kIgnoreExistingFiles = 'ignore-existing-files';
+  static const String kIgnoreExistingFilesAbbr = 'i';
+  bool get ignoreExistingFiles => get<bool>(kIgnoreExistingFiles);
 }
 
 class AnimeInfoCommand extends Command<void> {
@@ -119,6 +126,11 @@ class AnimeInfoCommand extends Command<void> {
         _Options.kFallbackQuality,
         aliases: _Options.kFallbackQualityAliases,
         allowed: _Options.kFallbackQualityAllowed,
+      )
+      ..addFlag(_Options.kSearch)
+      ..addFlag(
+        _Options.kIgnoreExistingFiles,
+        abbr: _Options.kIgnoreExistingFilesAbbr,
       );
   }
 
@@ -138,15 +150,29 @@ class AnimeInfoCommand extends Command<void> {
     final TenkaModuleArgs<AnimeExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.anime);
 
-    final ContentRange? range =
-        options.episodes != null ? ContentRange.parse(options.episodes!) : null;
+    final String getInfoURL;
+    final Locale getInfoLocale;
+    if (options.search) {
+      final List<SearchInfo> searches =
+          await mArgs.extractor.search(mArgs.terms, mArgs.locale);
+
+      if (searches.isEmpty) {
+        throw CommandException('No results for "${mArgs.terms}".');
+      }
+
+      getInfoURL = searches.first.url;
+      getInfoLocale = searches.first.locale;
+    } else {
+      getInfoURL = mArgs.terms;
+      getInfoLocale = mArgs.locale;
+    }
 
     final AnimeInfo? cached = !options.noCache
-        ? Cache.cache.getAnime(mArgs.metadata.id, mArgs.terms)
+        ? Cache.cache.getAnime(mArgs.metadata.id, getInfoURL)
         : null;
 
     final AnimeInfo info =
-        cached ?? await mArgs.extractor.getInfo(mArgs.terms, mArgs.locale);
+        cached ?? await mArgs.extractor.getInfo(getInfoURL, getInfoLocale);
 
     await Cache.cache.saveAnime(mArgs.metadata.id, info);
 
@@ -154,6 +180,14 @@ class AnimeInfoCommand extends Command<void> {
       printJson(info.toJson());
       return;
     }
+
+    final ContentRange? range = options.episodes != null
+        ? ContentRange.parse(
+            options.episodes!,
+            allowed:
+                info.episodes.map((final EpisodeInfo x) => x.episode).toList(),
+          )
+        : null;
 
     printHeading('Anime Information');
     print(DyeUtils.dyeKeyValue('Title', info.title));
@@ -277,8 +311,7 @@ class AnimeInfoCommand extends Command<void> {
         final String rSubDestination = argTemplates.replace(subDestination);
         final String rFilename = argTemplates.replace(filename);
 
-        final String leftSpace =
-            List<String>.filled(x.episode.length + 2, ' ').join();
+        final String leftSpace = ' ' * (x.episode.length + 2);
 
         print(
           leftSpace +
@@ -329,6 +362,7 @@ class AnimeInfoCommand extends Command<void> {
             leftSpace: leftSpace,
             url: source.url,
             headers: source.headers,
+            ignoreIfFileExists: options.ignoreExistingFiles,
             getDestination: ({
               required final String mimeType,
             }) {
@@ -341,7 +375,7 @@ class AnimeInfoCommand extends Command<void> {
               print(
                 leftSpace +
                     Dye.dye('Output: ', 'default').toString() +
-                    Dye.dye(filePath, 'lightMagenta/underline').toString(),
+                    Dye.dye(filePath, 'lightCyan/underline').toString(),
               );
 
               return filePath;

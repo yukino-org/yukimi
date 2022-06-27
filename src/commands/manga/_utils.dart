@@ -20,7 +20,7 @@ class MangaDownloader {
   static const Downloader<RawDLProvider> downloader =
       Downloader<RawDLProvider>(provider: RawDLProvider());
 
-  static Future<void> downloadAsImages({
+  static Future<bool> downloadAsImages({
     required final List<PageInfo> pages,
     required final MangaExtractor extractor,
     required final String leftSpace,
@@ -41,6 +41,7 @@ class MangaDownloader {
     );
 
     int i = 1;
+    bool result = false;
     for (final TwinTuple<List<int>, String> x in data) {
       final File file = File(
         getDestination(
@@ -51,18 +52,26 @@ class MangaDownloader {
 
       await FSUtils.ensureFile(file);
       await file.writeAsBytes(x.first);
+      result = true;
       i++;
     }
 
     bar.end();
+    return result;
   }
 
-  static Future<void> downloadAsPdf({
+  static Future<bool> downloadAsPdf({
     required final List<PageInfo> pages,
     required final MangaExtractor extractor,
     required final String leftSpace,
+    required final bool ignoreIfFileExists,
     required final GetPdfDestinationFn getDestination,
   }) async {
+    final File file = File(getDestination(mimeType: 'pdf'));
+    if (ignoreIfFileExists && await file.exists()) {
+      return false;
+    }
+
     const ProgressBar bar = ProgressBar();
 
     final List<List<int>> data = await _download(
@@ -87,11 +96,11 @@ class MangaDownloader {
       );
     }
 
-    final File file = File(getDestination(mimeType: 'pdf'));
     await FSUtils.ensureFile(file);
     await file.writeAsBytes(await document.save());
 
     bar.end();
+    return true;
   }
 
   static Future<List<T>> _download<T>({

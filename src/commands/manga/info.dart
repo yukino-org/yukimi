@@ -74,6 +74,13 @@ class _Options extends CommandOptions {
       _DownloadFormat.values.map((final _DownloadFormat x) => x.name).toList();
   static final String kDownloadFormatDefaultsTo = _DownloadFormat.pdf.name;
   String get downloadFormat => get<String>(kDownloadFormat);
+
+  static const String kSearch = 'search';
+  bool get search => get<bool>(kSearch);
+
+  static const String kIgnoreExistingFiles = 'ignore-existing-files';
+  static const String kIgnoreExistingFilesAbbr = 'i';
+  bool get ignoreExistingFiles => get<bool>(kIgnoreExistingFiles);
 }
 
 class MangaInfoCommand extends Command<void> {
@@ -121,6 +128,11 @@ class MangaInfoCommand extends Command<void> {
         aliases: _Options.kDownloadFormatAliases,
         allowed: _Options.kDownloadFormatAllowed,
         defaultsTo: _Options.kDownloadFormatDefaultsTo,
+      )
+      ..addFlag(_Options.kSearch)
+      ..addFlag(
+        _Options.kIgnoreExistingFiles,
+        abbr: _Options.kIgnoreExistingFilesAbbr,
       );
   }
 
@@ -140,15 +152,29 @@ class MangaInfoCommand extends Command<void> {
     final TenkaModuleArgs<MangaExtractor> mArgs =
         await TenkaModuleArgs.parse(argResults!, TenkaType.manga);
 
-    final ContentRange? range =
-        options.chapters != null ? ContentRange.parse(options.chapters!) : null;
+    final String getInfoURL;
+    final Locale getInfoLocale;
+    if (options.search) {
+      final List<SearchInfo> searches =
+          await mArgs.extractor.search(mArgs.terms, mArgs.locale);
+
+      if (searches.isEmpty) {
+        throw CommandException('No results for "${mArgs.terms}".');
+      }
+
+      getInfoURL = searches.first.url;
+      getInfoLocale = searches.first.locale;
+    } else {
+      getInfoURL = mArgs.terms;
+      getInfoLocale = mArgs.locale;
+    }
 
     final MangaInfo? cached = !options.noCache
-        ? Cache.cache.getManga(mArgs.metadata.id, mArgs.terms)
+        ? Cache.cache.getManga(mArgs.metadata.id, getInfoURL)
         : null;
 
     final MangaInfo info =
-        cached ?? await mArgs.extractor.getInfo(mArgs.terms, mArgs.locale);
+        cached ?? await mArgs.extractor.getInfo(getInfoURL, getInfoLocale);
 
     await Cache.cache.saveManga(mArgs.metadata.id, info);
 
@@ -156,6 +182,14 @@ class MangaInfoCommand extends Command<void> {
       printJson(info.toJson());
       return;
     }
+
+    final ContentRange? range = options.chapters != null
+        ? ContentRange.parse(
+            options.chapters!,
+            allowed:
+                info.chapters.map((final ChapterInfo x) => x.chapter).toList(),
+          )
+        : null;
 
     printHeading('Manga Information');
     print(DyeUtils.dyeKeyValue('Title', info.title));
@@ -197,13 +231,14 @@ class MangaInfoCommand extends Command<void> {
       );
     }
 
-    if (options.download || options.read) {
+    if (selectedChapters.isNotEmpty) {
       println();
 
-      if (options.download) printHeading('Downloads');
-
-      if (selectedChapters.isEmpty) {
-        throw CommandException.missingOption('chapters');
+      if (options.download) {
+        printHeading('Downloads');
+      } else if (options.read) {
+      } else {
+        printHeading('Source');
       }
 
       if (options.read && selectedChapters.length != 1) {
@@ -269,8 +304,15 @@ class MangaInfoCommand extends Command<void> {
         final List<PageInfo> pages =
             await mArgs.extractor.getChapter(x.url, x.locale);
 
-        final String leftSpace =
-            List<String>.filled(x.chapter.length + 2, ' ').join();
+        final String leftSpace = ' ' * (x.chapter.length + 2);
+
+        void _printFilePath(final String filePath) {
+          print(
+            leftSpace +
+                Dye.dye('Output: ', 'default').toString() +
+                Dye.dye(filePath, 'lightCyan/underline').toString(),
+          );
+        }
 
         switch (format) {
           case _DownloadFormat.pdf:
@@ -284,16 +326,26 @@ class MangaInfoCommand extends Command<void> {
               leftSpace: leftSpace,
               pages: pages,
               extractor: mArgs.extractor,
+              ignoreIfFileExists: options.ignoreExistingFiles,
               getDestination: ({
                 required final String mimeType,
-              }) =>
-                  filePath = argTemplates.replace('$filePath.$mimeType'),
+              }) {
+                filePath = argTemplates.replace('$filePath.$mimeType');
+                _printFilePath(filePath);
+                return filePath;
+              },
             );
             break;
 
           case _DownloadFormat.image:
             filePath =
                 argTemplates.replace(path.join(destination, subDestination));
+            _printFilePath(filePath);
+
+            if (options.ignoreExistingFiles &&
+                await Directory(filePath).exists()) {
+              break;
+            }
 
             await MangaDownloader.downloadAsImages(
               leftSpace: leftSpace,
@@ -318,11 +370,6 @@ class MangaInfoCommand extends Command<void> {
         }
 
         stdout.write('\r');
-        print(
-          leftSpace +
-              Dye.dye('Output: ', 'dark').toString() +
-              Dye.dye(filePath, 'dark/underline').toString(),
-        );
 
         if (options.read) {
           final String fExecutable = getFileSystemExecutable();

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'console.dart';
+
 class ProgressBar {
   const ProgressBar();
 
@@ -14,22 +16,16 @@ class ProgressBar {
 
     final int maxBarLength =
         terminalWidth - prefix.length - adjust - state.length;
+    final String bPrefix = '=' * ((percent / 100) * maxBarLength).floor();
+    final String bSuffix = '-' * (maxBarLength - bPrefix.length);
 
-    final String bPrefix = List<String>.filled(
-      ((percent / 100) * maxBarLength).floor(),
-      '█',
-    ).join();
-
-    final String bSuffix = List<String>.filled(
-      maxBarLength - bPrefix.length,
-      ' ',
-    ).join();
-
-    stdout.write('\r$prefix$state [$bPrefix$bSuffix]');
+    stdout.write(
+      '\r$prefix$state [${Dye.dye(bPrefix, 'lightGreen')}${Dye.dye(bSuffix, 'dark')}]',
+    );
   }
 
   void end() {
-    stdout.write('\r${List<String>.filled(terminalWidth, ' ').join()}');
+    stdout.write('\r${' ' * terminalWidth}');
   }
 
   int get terminalWidth => stdout.terminalColumns;

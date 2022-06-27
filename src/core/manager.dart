@@ -113,9 +113,7 @@ abstract class AppManager {
       Dye.dye('${AppMeta.name} v${GeneratedAppMeta.version}', 'lightCyan')
           .toString(),
     );
-    printAligned(
-      Dye.dye(AppMeta.github, 'dark/underline').toString(),
-    );
+    printAligned(Dye.dye(AppMeta.github, 'dark/underline').toString());
     println();
 
     await checkForUpdates();

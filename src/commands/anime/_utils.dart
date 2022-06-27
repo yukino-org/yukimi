@@ -12,11 +12,12 @@ typedef GetDestinationFn = String Function({
 });
 
 class AnimeDownloader {
-  static Future<void> download({
+  static Future<bool> download({
     required final String url,
     required final Map<String, String> headers,
-    required final GetDestinationFn getDestination,
     required final String leftSpace,
+    required final bool ignoreIfFileExists,
+    required final GetDestinationFn getDestination,
   }) async {
     final Downloader<DLProvider> downloader =
         Downloader<DLProvider>(provider: getProvider(url));
@@ -30,6 +31,10 @@ class AnimeDownloader {
       getDestination(mimeType: resolveFileExtensionFromDLResponse(dRes)!),
     );
     if (await file.exists()) {
+      if (ignoreIfFileExists) {
+        return false;
+      }
+
       await file.delete(recursive: true);
     }
 
@@ -48,6 +53,7 @@ class AnimeDownloader {
 
     await fRes.asFuture();
     bar.end();
+    return true;
   }
 
   static DLProvider getProvider(final String url) {
