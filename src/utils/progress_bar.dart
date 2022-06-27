@@ -20,7 +20,7 @@ class ProgressBar {
     final String bSuffix = '-' * (maxBarLength - bPrefix.length);
 
     stdout.write(
-      '\r$prefix$state [${Dye.dye(bPrefix, 'lightGreen')}${Dye.dye(bSuffix, 'magenta')}]',
+      '\r$prefix$state [${Dye.dye(bPrefix, 'lightGreen')}${Dye.dye(bSuffix, 'dark')}]',
     );
   }
 
