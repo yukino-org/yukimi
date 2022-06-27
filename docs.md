@@ -9,6 +9,7 @@ Global options:
 -h, --help          Print this usage information.
     --json          
     --[no-]color    (defaults to on)
+    --[no-]debug    
 
 Available commands:
   agree-to-usage-policy   Agree the app's usage policy.
@@ -67,18 +68,21 @@ Run "yukimi help" to see global options.
 Get information of an anime.
 
 Usage: yukimi anime info [arguments]
--h, --help               Print this usage information.
--l, --locale             
--m, --module             
-    --no-cache           
--d, --download           
--p, --play               
--e, --episodes           
--o, --destination        
--s, --sub-destination    
--n, --filename           
--q, --quality            
-    --fallbackQuality    
+-h, --help                          Print this usage information.
+-l, --locale                        
+-m, --module                        
+    --no-cache                      
+-d, --download                      
+-p, --play                          
+-e, --episodes                      
+-o, --destination                   
+-s, --sub-destination               
+-n, --filename                      
+-q, --quality                       [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
+    --fallbackQuality               [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
+    --[no-]search                   
+-i, --[no-]ignore-existing-files    
+    --filter-sources-by             
 
 Run "yukimi help" to see global options.
 ```
@@ -132,17 +136,19 @@ Run "yukimi help" to see global options.
 Get information of an manga.
 
 Usage: yukimi manga info [arguments]
--h, --help               Print this usage information.
--l, --locale             
--m, --module             
-    --no-cache           
--d, --download           
--r, --read               
--c, --chapters           
--o, --destination        
--s, --sub-destination    
--n, --filename           
--f, --download-format    [pdf (default), image]
+-h, --help                          Print this usage information.
+-l, --locale                        
+-m, --module                        
+    --no-cache                      
+-d, --download                      
+-r, --read                          
+-c, --chapters                      
+-o, --destination                   
+-s, --sub-destination               
+-n, --filename                      
+-f, --download-format               [pdf (default), image]
+    --[no-]search                   
+-i, --[no-]ignore-existing-files    
 
 Run "yukimi help" to see global options.
 ```
@@ -255,7 +261,7 @@ Display the app settings.
 Usage: yukimi settings [arguments]
 -h, --help                           Print this usage information.
 -r, --reset                          [usagePolicy, ignoreSSLCertificate, animePreferredQuality, animeFallbackQuality, animeDownloadDestination, animeDownloadSubDestination, animeDownloadFilename, mangaDownloadDestination, mangaDownloadSubDestination, mangaDownloadFilename, mpvPath]
-    --[no-]reset-all                 
+    --reset-all                      
     --[no-]ignoreSSLCertificate      
     --mpvPath                        
     --animeDownloadDestination       
@@ -264,8 +270,8 @@ Usage: yukimi settings [arguments]
     --mangaDownloadDestination       
     --mangaDownloadSubDestination    
     --mangaDownloadFilename          
-    --animePreferredQuality          
-    --animeFallbackQuality           
+    --animePreferredQuality          [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
+    --animeFallbackQuality           [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
 
 Run "yukimi help" to see global options.
 ```
