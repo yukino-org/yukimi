@@ -4,6 +4,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
 import '../commands/agree_to_usage.dart';
+import '../config/constants.dart';
 import '../config/meta.dart';
 import '../config/paths.dart';
 import '../utils/console.dart';
@@ -129,6 +130,9 @@ abstract class AppManager {
       if (GeneratedAppMeta.version != latestVersion) {
         print(
           'New version available! (${Dye.dye(GeneratedAppMeta.version, 'lightCyan')} -> ${Dye.dye(latestVersion, 'lightCyan')})',
+        );
+        print(
+          'If you need help on updating, check out ${Dye.dye(URLs.updatingGuide, 'lightCyan/underline')}.',
         );
         println();
       }

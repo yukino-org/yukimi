@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import '../config/constants.dart';
 import '../core/commander.dart';
 import '../core/database/settings.dart';
 import '../core/manager.dart';
@@ -65,6 +66,7 @@ class AgreeToUsagePolicyCommand extends Command<void> {
 
     printHeading('Usage Policy');
     print('By using this application, you agree to the below usage policies.');
+
     policies.forEach(
       (final String k, final String v) => print(
         <String>[
@@ -91,8 +93,19 @@ class AgreeToUsagePolicyCommand extends Command<void> {
     AppSettings.settings.usagePolicy = true;
     await AppSettings.save();
 
+    final Map<String, String> guides = <String, String>{
+      'Basic Guide': URLs.basicUsageGuide,
+      'Advanced Guide': URLs.advancedUsageGuide,
+    };
+
+    println();
     print(
-      'Welcome dear weeb! You can get started by running the ${Dye.dye('help', 'lightCyan')} command. For more information, check out our guides!',
+      '''
+Welcome dear weeb! You can get started by running the ${Dye.dye('help', 'lightCyan')} command.
+For more information, check out the below guides!
+${guides.entries.map((final MapEntry<String, String> x) => '${Dye.dye('*', 'dark')} ${x.key}: ${Dye.dye(x.value, 'lightCyan/underline')}').join('\n')}
+'''
+          .trim(),
     );
   }
 }
