@@ -114,7 +114,7 @@ abstract class AppManager {
       Dye.dye('${AppMeta.name} v${GeneratedAppMeta.version}', 'lightCyan')
           .toString(),
     );
-    printAligned(Dye.dye(AppMeta.github, 'dark/underline').toString());
+    printAligned(Dye.dye(AppMeta.github, 'magenta/underline').toString());
     println();
 
     await checkForUpdates();
@@ -143,6 +143,7 @@ abstract class AppManager {
   }
 
   static bool get isJsonMode => globalArgResults!['json'] as bool;
+  static bool get debug => globalArgResults!['debug'] as bool;
 
   static AppMode get mode {
     if (isJsonMode) {

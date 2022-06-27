@@ -151,13 +151,19 @@ void printAligned(
 void println() => print(' ');
 
 void printWarning(final String value) {
-  print(Dye.dye(value, 'lightYellow'));
+  print(Dye.dye('[warn] $value', 'lightYellow'));
+}
+
+void printDebug(final String text) {
+  if (AppManager.debug && !AppManager.isJsonMode) {
+    print(Dye.dye('[debug] $text', 'dark'));
+  }
 }
 
 void printError(final Object error, [final StackTrace? stack]) {
-  print(Dye.dye(error.toString(), 'lightRed'));
+  print(Dye.dye('[error] $error', 'lightRed'));
   if (stack != null) {
-    print(Dye.dye(stack.toString(), 'dark'));
+    print(Dye.dye(stack.toString(), 'lightRed'));
   }
 }
 

@@ -70,11 +70,11 @@ class AgreeToUsagePolicyCommand extends Command<void> {
     policies.forEach(
       (final String k, final String v) => print(
         <String>[
-          Dye.dye('*', 'dark').toString(),
+          Dye.dye('*', 'magenta').toString(),
           Dye.dye(k, 'lightCyan').toString(),
-          Dye.dye('(', 'dark').toString() +
-              Dye.dye(v, 'dark/underline').toString() +
-              Dye.dye(')', 'dark').toString(),
+          Dye.dye('(', 'magenta').toString() +
+              Dye.dye(v, 'magenta/underline').toString() +
+              Dye.dye(')', 'magenta').toString(),
         ].join(' '),
       ),
     );
@@ -103,7 +103,7 @@ class AgreeToUsagePolicyCommand extends Command<void> {
       '''
 Welcome dear weeb! You can get started by running the ${Dye.dye('help', 'lightCyan')} command.
 For more information, check out the below guides!
-${guides.entries.map((final MapEntry<String, String> x) => '${Dye.dye('*', 'dark')} ${x.key}: ${Dye.dye(x.value, 'lightCyan/underline')}').join('\n')}
+${guides.entries.map((final MapEntry<String, String> x) => '${Dye.dye('*', 'magenta')} ${x.key}: ${Dye.dye(x.value, 'lightCyan/underline')}').join('\n')}
 '''
           .trim(),
     );

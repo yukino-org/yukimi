@@ -51,7 +51,7 @@ class MangaPageCommand extends Command<void> {
     print(DyeUtils.dyeKeyValue('Headers', ''));
     result.headers.forEach((final String key, final String value) {
       print(
-        '  ${Dye.dye('-', 'dark')} ${DyeUtils.dyeKeyValue(key, value)}',
+        '  ${Dye.dye('-', 'magenta')} ${DyeUtils.dyeKeyValue(key, value)}',
       );
     });
   }

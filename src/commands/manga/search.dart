@@ -46,10 +46,11 @@ class MangaSearchCommand extends Command<void> {
     for (final SearchInfo x in results) {
       final String left = '$i.';
       print(
-        '$left ${Dye.dye(x.title, 'lightCyan')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
+        '$left ${Dye.dye(x.title, 'lightCyan')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
       );
       print(
-        (' ' * (left.length + 1)) + Dye.dye(x.url, 'dark/underline').toString(),
+        (' ' * (left.length + 1)) +
+            Dye.dye(x.url, 'magenta/underline').toString(),
       );
 
       i++;

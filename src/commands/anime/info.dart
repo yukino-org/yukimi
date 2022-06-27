@@ -76,6 +76,10 @@ class _Options extends CommandOptions {
   static const String kIgnoreExistingFiles = 'ignore-existing-files';
   static const String kIgnoreExistingFilesAbbr = 'i';
   bool get ignoreExistingFiles => get<bool>(kIgnoreExistingFiles);
+
+  static const String kFilterSourcesBy = 'filter-sources-by';
+  static const List<String> kFilterSourcesByAliases = <String>['fsb'];
+  String? get filterSourcesBy => getNullable(kFilterSourcesBy);
 }
 
 class AnimeInfoCommand extends Command<void> {
@@ -131,6 +135,10 @@ class AnimeInfoCommand extends Command<void> {
       ..addFlag(
         _Options.kIgnoreExistingFiles,
         abbr: _Options.kIgnoreExistingFilesAbbr,
+      )
+      ..addOption(
+        _Options.kFilterSourcesBy,
+        aliases: _Options.kFilterSourcesByAliases,
       );
   }
 
@@ -225,7 +233,7 @@ class AnimeInfoCommand extends Command<void> {
       }
 
       print(
-        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
+        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
       );
     }
 
@@ -270,11 +278,27 @@ class AnimeInfoCommand extends Command<void> {
 
       for (final EpisodeInfo x in selectedEpisodes) {
         print(
-          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
+          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
         );
 
         final List<EpisodeSource> sources =
             await mArgs.extractor.getSources(x.url, x.locale);
+
+        if (AppManager.debug) {
+          printDebug('Available Sources:');
+          int i = 0;
+          for (final EpisodeSource x in sources) {
+            printDebug(
+              '  $i: ${x.url} (${x.quality.code}) [${x.headers.entries.map((final MapEntry<String, String> x) => '${x.key}: ${x.value}').join(', ')}]',
+            );
+            i++;
+          }
+        }
+
+        if (options.filterSourcesBy != null) {
+          final RegExp exp = RegExp(options.filterSourcesBy!);
+          sources.retainWhere((final EpisodeSource x) => exp.hasMatch(x.url));
+        }
 
         final EpisodeSource? source = resolveEpisodeSource(
           sources: sources,
@@ -315,19 +339,23 @@ class AnimeInfoCommand extends Command<void> {
 
         print(
           leftSpace +
-              Dye.dye('Quality: ', 'dark').toString() +
-              Dye.dye(source.quality.code, 'dark').toString(),
+              Dye.dye('Quality: ', 'default').toString() +
+              Dye.dye(source.quality.code, 'lightCyan').toString(),
         );
-        print(leftSpace + Dye.dye('Source: ', 'dark').toString());
+        print(leftSpace + Dye.dye('Source: ', 'default').toString());
         print(
           leftSpace +
-              Dye.dye('  URL: ', 'dark').toString() +
-              Dye.dye(source.url, 'dark/underline').toString(),
+              Dye.dye('  URL: ', 'default').toString() +
+              Dye.dye(source.url, 'magenta/underline').toString(),
         );
         if (source.headers.isNotEmpty) {
-          print(leftSpace + Dye.dye('  Headers: ', 'dark').toString());
+          print(leftSpace + Dye.dye('  Headers: ', 'default').toString());
           source.headers.forEach((final String k, final String v) {
-            print(leftSpace + Dye.dye('    $k: $v', 'dark').toString());
+            print(
+              leftSpace +
+                  Dye.dye('    $k: ', 'default').toString() +
+                  Dye.dye(v, 'magenta').toString(),
+            );
           });
         }
 

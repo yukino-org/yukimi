@@ -123,7 +123,8 @@ abstract class AppCommander {
 
     runner.argParser
       ..addFlag('json', negatable: false)
-      ..addFlag('color', defaultsTo: true);
+      ..addFlag('color', defaultsTo: true)
+      ..addFlag('debug');
 
     runner
       ..addCommand(AgreeToUsagePolicyCommand())

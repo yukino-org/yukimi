@@ -4,6 +4,7 @@ import 'package:dl/dl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/utils.dart';
+import '../../utils/console.dart';
 import '../../utils/others.dart';
 import '../../utils/progress_bar.dart';
 
@@ -126,6 +127,10 @@ class MangaDownloader {
       pages.asMap().keys.map((final int i) async {
         final PageInfo x = pages[i];
         final ImageDescriber image = await extractor.getPage(x.url, x.locale);
+        printDebug(
+          'Page $i: ${image.url} [${image.headers.entries.map((final MapEntry<String, String> x) => '${x.key}: ${x.value}').join(', ')}]',
+        );
+
         final DLResponse res = await downloader.download(
           url: Uri.parse(image.url),
           headers: image.headers,

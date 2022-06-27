@@ -227,7 +227,7 @@ class MangaInfoCommand extends Command<void> {
       }
 
       print(
-        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
+        '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
       );
     }
 
@@ -278,7 +278,7 @@ class MangaInfoCommand extends Command<void> {
 
       for (final ChapterInfo x in selectedChapters) {
         print(
-          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'dark')}',
+          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
         );
 
         final CommandArgumentTemplates argTemplates =
