@@ -10,7 +10,6 @@ abstract class AppMeta {
   static const String github = 'https://github.com/$_github';
   static const String patreon = 'https://www.patreon.com/yukino_org';
 
-  static const String lastestVersionEndpoint =
-      'https://raw.githubusercontent.com/$_github/dist-data/version.txt';
-  static const String latestReleaseEndpoint = 'https://api.github.com/repos/$_github/releases/latest';
+  static const String latestReleaseEndpoint =
+      'https://api.github.com/repos/$_github/releases/latest';
 }
