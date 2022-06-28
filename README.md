@@ -8,6 +8,7 @@
 
 By using this project, you agree to the [usage policy](https://yukino-org.github.io/wiki/tenka/disclaimer/).
 
+[![Downloads](https://img.shields.io/github/downloads/yukino-org/yukimi/total.svg?style=flat)](https://github.com/yukino-org/yukimi/releases/)
 [![Version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/yukino-org/yukimi/dist-data/badge-endpoint.json)](https://github.com/yukino-org/yukimi/)
 [![Platforms](https://img.shields.io/static/v1?label=platforms&message=windows%20|%20linux%20|%20macos&color=lightgrey)](https://github.com/yukino-org/yukimi/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
