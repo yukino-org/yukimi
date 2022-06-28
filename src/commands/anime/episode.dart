@@ -50,7 +50,7 @@ class AnimeEpisodeCommand extends Command<void> {
       print('   ${DyeUtils.dyeKeyValue('Headers', '')}');
       x.headers.forEach((final String key, final String value) {
         print(
-          '      ${Dye.dye('-', 'magenta')} ${DyeUtils.dyeKeyValue(key, value)}',
+          '      ${Dye.dye('-', 'dark')} ${DyeUtils.dyeKeyValue(key, value)}',
         );
       });
       print('   ${DyeUtils.dyeKeyValue('Quality', x.quality.code)}');

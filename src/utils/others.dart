@@ -6,7 +6,7 @@ import 'exceptions.dart';
 enum SupportedPlatforms {
   windows,
   linux,
-  mac,
+  macos,
 }
 
 final List<String> knownFileExtensions =
@@ -16,7 +16,7 @@ final List<String> knownFileExtensions =
 SupportedPlatforms getCurrentPlatform() {
   if (Platform.isWindows) return SupportedPlatforms.windows;
   if (Platform.isLinux) return SupportedPlatforms.linux;
-  if (Platform.isMacOS) return SupportedPlatforms.mac;
+  if (Platform.isMacOS) return SupportedPlatforms.macos;
 
   throw const UnsupportedPlatformException();
 }
@@ -64,7 +64,14 @@ Future<String?> getMpvPath() => getExecutablePathFromEnv('mpv');
 String getFileSystemExecutable() => <SupportedPlatforms, String>{
       SupportedPlatforms.windows: 'explorer.exe',
       SupportedPlatforms.linux: 'xdg-open',
-      SupportedPlatforms.mac: 'open',
+      SupportedPlatforms.macos: 'open',
     }[getCurrentPlatform()]!;
 
 int? onlyIfAboveZero(final int value) => value >= 0 ? value : null;
+
+String parseVersion(final String value) {
+  if (value.startsWith('v')) {
+    return value.substring(1);
+  }
+  return value;
+}

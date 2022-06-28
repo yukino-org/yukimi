@@ -41,22 +41,14 @@ jobs:
                       return executableName;
 
             - uses: actions/github-script@v6
-              id: commit-msg
+              id: release-tag
               with:
                   result-encoding: string
                   script: |
                       const { getVersion } = require("./cli/actions/version");
                       const version = await getVersion();
 
-                      return `[automated] v${version} (${{ github.sha }})`;
-
-            - uses: actions/github-script@v6
-              id: platform-name
-              with:
-                  result-encoding: string
-                  script: |
-                      const { getPlatform } = require("./cli/actions/platform");
-                      return getPlatform();
+                      return `v${version}`;
 
             - name: 🚧 Do prerequisites
               run: |
@@ -67,14 +59,12 @@ jobs:
               run: dart compile exe -o ${{ steps.exe-path.outputs.result }} ${{ env.INPUT_PATH }}
 
             - name: 🚀 Release executables
-              uses: zyrouge/gh-push-action@v1.0.0
+              uses: ncipollo/release-action@v1
               with:
-                  directory: ${{ env.OUTPUT_EXE_DIR }}
-                  branch: ${{ env.DEPLOY_BRANCH_PREFIX }}-${{ steps.platform-name.outputs.result }}
-                  local-username: ${{ env.GIT_CONFIG_NAME }}
-                  local-email: ${{ env.GIT_CONFIG_EMAIL }}
-                  commit-message: ${{ steps.commit-msg.outputs.result }}
-                  allow-empty-commit: true
+                  tag: ${{ steps.release-tag.outputs.result }}
+                  artifacts: "${{ env.OUTPUT_EXE_DIR }}/*"
+                  allowUpdates: true
+                  draft: true
 
     data:
         needs:

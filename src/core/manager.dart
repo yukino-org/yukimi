@@ -1,14 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import '../commands/agree_to_usage.dart';
-import '../config/constants.dart';
 import '../config/meta.dart';
 import '../config/paths.dart';
 import '../utils/console.dart';
 import '../utils/exceptions.dart';
+import '../utils/others.dart';
 import 'commander.dart';
 import 'database/cache.dart';
 import 'database/settings.dart';
@@ -124,18 +126,44 @@ abstract class AppManager {
   static Future<void> checkForUpdates() async {
     try {
       final http.Response resp =
-          await http.get(Uri.parse(AppMeta.lastestVersionEndpoint));
+          await http.get(Uri.parse(AppMeta.latestReleaseEndpoint));
 
-      final String latestVersion = resp.body;
-      if (GeneratedAppMeta.version != latestVersion) {
+      final Map<dynamic, dynamic> parsed =
+          json.decode(resp.body) as Map<dynamic, dynamic>;
+      if (parsed['draft'] as bool) return;
+
+      final String latestVersion = parseVersion(parsed['tag_name'] as String);
+      if (GeneratedAppMeta.version == latestVersion) return;
+      final String identifier = <SupportedPlatforms, String>{
+        SupportedPlatforms.windows: '-windows',
+        SupportedPlatforms.linux: '-linux',
+        SupportedPlatforms.macos: '-macos',
+      }[getCurrentPlatform()]!;
+
+      final String? latestExecutableURL = (parsed['assets'] as List<dynamic>)
+          .cast<Map<dynamic, dynamic>>()
+          .firstWhereOrNull(
+            (final Map<dynamic, dynamic> x) =>
+                (x['name'] as String).contains(identifier),
+          )?['browser_download_url'] as String?;
+      if (latestExecutableURL == null) return;
+
+      print(
+        'New version available! (${Dye.dye(GeneratedAppMeta.version, 'lightCyan')} -> ${Dye.dye(latestVersion, 'lightCyan')})',
+      );
+      print('Use any of below commands to update:');
+
+      final List<String> commands = <String>[
+        'curl -L $latestExecutableURL -o yukimi',
+        'wget $latestExecutableURL -o yukimi',
+      ];
+      for (final String x in commands) {
         print(
-          'New version available! (${Dye.dye(GeneratedAppMeta.version, 'lightCyan')} -> ${Dye.dye(latestVersion, 'lightCyan')})',
+          '  ${Dye.dye('*', 'dark')} ${Dye.dye(x, 'magenta/underline')}',
         );
-        print(
-          'If you need help on updating, check out ${Dye.dye(URLs.updatingGuide, 'lightCyan/underline')}.',
-        );
-        println();
       }
+
+      println();
     } catch (_) {
       printWarning('Failed to check for updates.');
       println();

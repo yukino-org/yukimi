@@ -12,4 +12,5 @@ abstract class AppMeta {
 
   static const String lastestVersionEndpoint =
       'https://raw.githubusercontent.com/$_github/dist-data/version.txt';
+  static const String latestReleaseEndpoint = 'https://api.github.com/repos/$_github/releases/latest';
 }

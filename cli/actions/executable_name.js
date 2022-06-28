@@ -8,11 +8,15 @@ const getExecutableName = async () => {
     let suffix = "";
     switch (platform()) {
         case "win32":
-            suffix = ".exe";
+            suffix = "-windows.exe";
             break;
 
         case "linux":
+            suffix = "-linux";
+            break;
+
         case "darwin":
+            suffix = "-macos";
             break;
 
         default:
