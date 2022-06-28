@@ -50,6 +50,17 @@ jobs:
 
                       return `v${version}`;
 
+            - uses: actions/github-script@v6
+              id: release-body
+              with:
+                  env:
+                      RELEASE_TAG: ${{ steps.release-tag.outputs.result }}
+                  result-encoding: string
+                  script: |
+                      const { getReleaseBody } = require("./cli/actions/release_body");
+
+                      return getReleaseBody();
+
             - name: 🚧 Do prerequisites
               run: |
                   dart pub get
