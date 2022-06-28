@@ -32,7 +32,7 @@ abstract class Paths {
         return path.join(Platform.environment['APPDATA']!, AppMeta.id);
 
       default:
-        return path.join(_uProfileDir, '.${AppMeta.id}');
+        return path.join(_uHomeDir, '.${AppMeta.id}');
     }
   }
 
