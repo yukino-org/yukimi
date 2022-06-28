@@ -162,9 +162,7 @@ abstract class AppManager {
         'wget "$latestExecutableURL" -o $currentExecutableName',
       ];
       for (final String x in commands) {
-        print(
-          '  ${Dye.dye('*', 'dark')} ${Dye.dye(x, 'magenta/underline')}',
-        );
+        print('  ${Dye.dye('*', 'dark')} ${Dye.dye(x, 'lightCyan')}');
       }
 
       println();
