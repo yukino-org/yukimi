@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import '../commands/agree_to_usage.dart';
 import '../config/meta.dart';
 import '../config/paths.dart';
@@ -153,9 +154,12 @@ abstract class AppManager {
       );
       print('Use any of below commands to update:');
 
+      final String currentExecutableName =
+          path.basename(Platform.resolvedExecutable);
+
       final List<String> commands = <String>[
-        'curl -L $latestExecutableURL -o yukimi',
-        'wget $latestExecutableURL -o yukimi',
+        'curl -L "$latestExecutableURL" -o $currentExecutableName',
+        'wget "$latestExecutableURL" -o $currentExecutableName',
       ];
       for (final String x in commands) {
         print(
