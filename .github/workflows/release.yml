@@ -47,18 +47,16 @@ jobs:
                   script: |
                       const { getVersion } = require("./cli/actions/version");
                       const version = await getVersion();
-
                       return `v${version}`;
 
             - uses: actions/github-script@v6
               id: release-body
+              env:
+                  RELEASE_TAG: ${{ steps.release-tag.outputs.result }}
               with:
-                  env:
-                      RELEASE_TAG: ${{ steps.release-tag.outputs.result }}
                   result-encoding: string
                   script: |
                       const { getReleaseBody } = require("./cli/actions/release_body");
-
                       return getReleaseBody();
 
             - name: 🚧 Do prerequisites
@@ -74,6 +72,7 @@ jobs:
               with:
                   tag: ${{ steps.release-tag.outputs.result }}
                   artifacts: "${{ env.OUTPUT_EXE_DIR }}/*"
+                  body: ${{ steps.release-body.outputs.result }}
                   allowUpdates: true
                   draft: true
 
