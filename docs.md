@@ -83,6 +83,7 @@ Usage: yukimi anime info [arguments]
     --[no-]search                   
 -i, --[no-]ignore-existing-files    
     --filter-sources-by             
+    --downloader-concurrency        
 
 Run "yukimi help" to see global options.
 ```
@@ -149,6 +150,7 @@ Usage: yukimi manga info [arguments]
 -f, --download-format               [pdf (default), image]
     --[no-]search                   
 -i, --[no-]ignore-existing-files    
+    --downloader-concurrency        
 
 Run "yukimi help" to see global options.
 ```
@@ -259,19 +261,19 @@ Run "yukimi help" to see global options.
 Display the app settings.
 
 Usage: yukimi settings [arguments]
--h, --help                           Print this usage information.
--r, --reset                          [usagePolicy, ignoreSSLCertificate, animePreferredQuality, animeFallbackQuality, animeDownloadDestination, animeDownloadSubDestination, animeDownloadFilename, mangaDownloadDestination, mangaDownloadSubDestination, mangaDownloadFilename, mpvPath]
-    --reset-all                      
-    --[no-]ignoreSSLCertificate      
-    --mpvPath                        
-    --animeDownloadDestination       
-    --animeDownloadSubDestination    
-    --animeDownloadFilename          
-    --mangaDownloadDestination       
-    --mangaDownloadSubDestination    
-    --mangaDownloadFilename          
-    --animePreferredQuality          [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
-    --animeFallbackQuality           [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
+-h, --help                              Print this usage information.
+-r, --reset                             [usagePolicy, ignoreSSLCertificate, animePreferredQuality, animeFallbackQuality, animeDownloadDestination, animeDownloadSubDestination, animeDownloadFilename, mangaDownloadDestination, mangaDownloadSubDestination, mangaDownloadFilename, mpvPath, downloaderConcurrency]
+    --reset-all                         
+    --[no-]ignore-s-s-l-certificate     
+    --mpv-path                          
+    --anime-download-destination        
+    --anime-download-sub-destination    
+    --anime-download-filename           
+    --manga-download-destination        
+    --manga-download-sub-destination    
+    --manga-download-filename           
+    --anime-preferred-quality           [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
+    --anime-fallback-quality            [best, worst, 144p, 360p, 480p, 720p, 1080p, unknown]
 
 Run "yukimi help" to see global options.
 ```
