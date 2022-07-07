@@ -135,6 +135,7 @@ class SettingsCommand extends Command<void> {
 
     if (options.reset != null) {
       final Map<dynamic, dynamic> dJson = d.toJson();
+      dJson.remove(AppSettingsKeys.kUsagePolicy);
 
       AppSettings.settings = AppSettings.fromJson(
         AppSettings.settings.toJson()

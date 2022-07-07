@@ -75,3 +75,5 @@ String parseVersion(final String value) {
   }
   return value;
 }
+
+double bytesToMb(final int bytes) => bytes / 1024 / 1024;

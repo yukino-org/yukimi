@@ -3,6 +3,13 @@ import 'dart:io';
 import 'package:colorize/colorize.dart';
 import 'package:utilx/utils.dart';
 import '../core/manager.dart';
+import 'others.dart';
+
+abstract class AnsiCodes {
+  static const String esc = '\x1B';
+  static const String reset = '\r';
+  static String moveCursorUp(final int lines) => '$esc[${lines}F';
+}
 
 abstract class Symbols {
   static const String tick = '✓';
@@ -35,7 +42,7 @@ class Dye {
 
   static final Map<String, Styles> _styles = Styles.values.asMap().map(
         (final int i, final Styles x) => MapEntry<String, Styles>(
-          StringCase(x.name.toLowerCase()).pascalCase,
+          StringCase(x.name.toLowerCase()).camelCase,
           x,
         ),
       );
@@ -69,7 +76,7 @@ void printJson(final dynamic text) => print(json.encode(text));
 void printHeading(final String heading) =>
     print(Dye.dye(heading, 'white/underline'));
 
-String escapeANSI(final String text) => text.replaceAll(
+String escapeAnsi(final String text) => text.replaceAll(
       RegExp(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]'),
       '',
     );
@@ -122,7 +129,7 @@ void printAligned(
     final TwinTuple<String, String> parsed =
         _wrapTextWithinWidth(remaining, maxWidth, seperator);
 
-    final int remainingWidth = maxWidth - escapeANSI(parsed.first).length;
+    final int remainingWidth = maxWidth - escapeAnsi(parsed.first).length;
     final int leftWidth;
     final int rightWidth;
 
@@ -171,3 +178,70 @@ void printErrorJson(final Object error) => printJson(<dynamic, dynamic>{
       'error': error.toString(),
       'error_kind': error.runtimeType.toString(),
     });
+
+String buildDownloadProgressBar(
+  final double percent, {
+  required final int width,
+  final int? currentBytes,
+  final int? totalBytes,
+}) {
+  final String current = currentBytes != null
+      ? '${bytesToMb(currentBytes).toStringAsFixed(2)}MB'
+      : '?';
+  final String total = totalBytes != null
+      ? '${bytesToMb(totalBytes).toStringAsFixed(2)}MB'
+      : '?';
+
+  return buildProgressBar(
+    percent,
+    width: width,
+    prefix:
+        '${Dye.dye('${percent.floor()}%', 'lightCyan')} ${Dye.dye('($current/$total)', 'dark')}',
+  );
+}
+
+String buildGenericProgressBar(
+  final double percent, {
+  required final int width,
+  final int? current,
+  final int? total,
+}) =>
+    buildProgressBar(
+      percent,
+      width: width,
+      prefix:
+          '${Dye.dye('${percent.floor()}%', 'lightCyan')} ${Dye.dye('(${current ?? '?'}/${total ?? '?'})', 'dark')}',
+    );
+
+String buildProgressBar(
+  final double percent, {
+  required final int width,
+  final String? prefix,
+  final String? suffix,
+}) {
+  final int maxBarLength = width -
+      (prefix != null ? escapeAnsi(prefix).length + 1 : 0) -
+      (suffix != null ? escapeAnsi(suffix).length + 1 : 0) -
+      2;
+
+  final String bPrefix = '▬' * ((percent / 100) * maxBarLength).floor();
+  final String bSuffix = ' ' * (maxBarLength - bPrefix.length);
+
+  return (prefix != null ? '$prefix ' : '') +
+      Dye.dye('[', 'dark').toString() +
+      Dye.dye(bPrefix, 'lightCyan').toString() +
+      Dye.dye(bSuffix, 'dark').toString() +
+      Dye.dye(']', 'dark').toString() +
+      (suffix != null ? ' $suffix' : '');
+}
+
+String getPaddedSingleLinePrint(final String line) =>
+    line + (' ' * (stdout.terminalColumns - escapeAnsi(line).length));
+
+String getPaddedPrintText(final String text) =>
+    text.split('\n').map(getPaddedSingleLinePrint).join('\n');
+
+int countConsoleTextLines(final String text) => escapeAnsi(text)
+    .split('\n')
+    .map((final String x) => (x.length / stdout.terminalColumns).ceil())
+    .reduce((final int x, final int y) => x + y);

@@ -33,6 +33,8 @@ class QueuedRunner<T> {
       _stream.add(TwinTuple<int, T>(i, value));
       _count--;
       _queue();
+    }).catchError((final Object error, final StackTrace stackTrace) {
+      _stream.addError(error, stackTrace);
     });
 
     _queue();
@@ -54,7 +56,7 @@ class QueuedRunner<T> {
     return results.cast<T>();
   }
 
-  bool get _hasPendingOperations => _index < operations.length - 1;
+  bool get _hasPendingOperations => _index < operations.length;
   bool get _isQueueEmpty => _count == 0;
   bool get _isQueueFilled => _count >= concurrency;
 }

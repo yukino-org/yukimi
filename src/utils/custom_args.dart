@@ -151,6 +151,12 @@ class CommandArgumentTemplates {
         },
       );
 
+  CommandArgumentTemplates copyWith(final Map<String, String> variables) =>
+      CommandArgumentTemplates(<String, String>{
+        ...this.variables,
+        ...variables,
+      });
+
   static const String kAppName = 'app.name';
   static const String kAppId = 'app.id';
   static const String kAppVersion = 'app.version';

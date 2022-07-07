@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
@@ -14,6 +15,7 @@ import '../../utils/console.dart';
 import '../../utils/content_range.dart';
 import '../../utils/custom_args.dart';
 import '../../utils/exceptions.dart';
+import '../../utils/io.dart';
 import '../../utils/others.dart';
 import '_utils.dart';
 
@@ -198,8 +200,9 @@ class MangaInfoCommand extends Command<void> {
     final ContentRange? range = options.chapters != null
         ? ContentRange.parse(
             options.chapters!,
-            allowed:
-                info.chapters.map((final ChapterInfo x) => x.chapter).toList(),
+            allowed: info.chapters
+                .map((final ChapterInfo x) => double.parse(x.chapter))
+                .toList(),
           )
         : null;
 
@@ -233,7 +236,7 @@ class MangaInfoCommand extends Command<void> {
     for (final ChapterInfo x in info.chapters) {
       final Dye i = Dye('${x.chapter}.');
 
-      if (range?.contains(x.chapter) ?? false) {
+      if (range?.contains(double.parse(x.chapter)) ?? false) {
         i.apply('lightGreen');
         selectedChapters.add(x);
       }
@@ -262,146 +265,187 @@ class MangaInfoCommand extends Command<void> {
       final _DownloadFormat format =
           EnumUtils.find(_DownloadFormat.values, options.downloadFormat);
 
-      final String destinationTemplate = options.destination ??
+      final String destination = options.destination ??
           (options.download
               ? AppSettings.settings.mangaDownloadDestination
               : Paths.tmpDir);
 
-      final String subDestinationTemplate = options.subDestination ??
+      final String subDestination = options.subDestination ??
           AppSettings.settings.mangaDownloadSubDestination;
 
       final String filenameTemplate =
           options.filename ?? AppSettings.settings.mangaDownloadFilename;
+      final String filename = format == _DownloadFormat.image
+          ? path.join(
+              filenameTemplate,
+              '\${${CommandArgumentTemplates.kPageNumber}}',
+            )
+          : filenameTemplate;
 
       final int concurrency = options.download
           ? options.downloaderConcurrency ??
               AppSettings.settings.downloaderConcurrency
           : 1;
 
-      final String destination;
-      final String subDestination;
-      final String filename;
+      final CommandArgumentTemplates globalArgTemplates =
+          CommandArgumentTemplates.withDefaultTemplates(
+        <String, String>{
+          CommandArgumentTemplates.kMangaTitle: info.title,
+          CommandArgumentTemplates.kMangaURL: info.url,
+          CommandArgumentTemplates.kMangaLocale: info.locale.toPrettyString(),
+          CommandArgumentTemplates.kMangaLocaleCode: info.locale.toCodeString(),
+          CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
+          CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
+        },
+      );
 
-      switch (format) {
-        case _DownloadFormat.image:
-          destination = destinationTemplate;
-          subDestination = path.join(subDestinationTemplate, filenameTemplate);
-          filename = '\${${CommandArgumentTemplates.kPageNumber}}';
-          break;
+      final String folder = FSUtils.ensurePath(
+        globalArgTemplates.replace(path.join(destination, subDestination)),
+      );
 
-        default:
-          destination = destinationTemplate;
-          subDestination = subDestinationTemplate;
-          filename = filenameTemplate;
+      print(
+        Dye.dye('Output: ', 'default').toString() +
+            Dye.dye(folder, 'lightCyan/underline').toString(),
+      );
+      println();
+
+      const String leftSpace = '   ';
+      final Map<ChapterInfo, String> logs = <ChapterInfo, String>{};
+      int prevLogLines = 0;
+
+      void logFn() {
+        final String line = logs.values.map(getPaddedPrintText).join('\n');
+        print(AnsiCodes.moveCursorUp(prevLogLines));
+        print(line);
+        prevLogLines = countConsoleTextLines(line) + 1;
       }
 
-      for (final ChapterInfo x in selectedChapters) {
-        print(
-          '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
-        );
+      final Timer logTimer = Timer.periodic(
+        const Duration(milliseconds: 100),
+        (final Timer _) => logFn(),
+      );
 
-        final CommandArgumentTemplates argTemplates =
-            CommandArgumentTemplates.withDefaultTemplates(
-          <String, String>{
-            CommandArgumentTemplates.kMangaTitle: info.title,
-            CommandArgumentTemplates.kMangaURL: info.url,
-            CommandArgumentTemplates.kMangaLocale: info.locale.toPrettyString(),
-            CommandArgumentTemplates.kMangaLocaleCode:
-                info.locale.toCodeString(),
-            CommandArgumentTemplates.kVolumeNumber: x.volume ?? '-',
-            CommandArgumentTemplates.kChapterNumber: x.chapter,
-            CommandArgumentTemplates.kChapterLocale: x.locale.toPrettyString(),
-            CommandArgumentTemplates.kChapterLocaleCode:
-                x.locale.toCodeString(),
-            CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
-            CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
-          },
-        );
+      final QueuedRunner<void> tasks = QueuedRunner<void>(
+        selectedChapters
+            .map(
+              (final ChapterInfo x) => () async {
+                final String prefix =
+                    '${Dye.dye('${x.chapter}.', 'lightGreen')} Chapter ${x.chapter} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}';
+                logs[x] =
+                    '$prefix (Status: ${Dye.dye('processing', 'magenta')})';
 
-        String filePath;
-
-        final List<PageInfo> pages =
-            await mArgs.extractor.getChapter(x.url, x.locale);
-
-        final String leftSpace = ' ' * (x.chapter.length + 2);
-
-        void _printFilePath(final String filePath) {
-          print(
-            leftSpace +
-                Dye.dye('Output: ', 'default').toString() +
-                Dye.dye(filePath, 'lightCyan/underline').toString(),
-          );
-        }
-
-        switch (format) {
-          case _DownloadFormat.pdf:
-            argTemplates.variables[CommandArgumentTemplates.kPageNumber] =
-                pages.length.toString();
-
-            filePath = argTemplates
-                .replace(path.join(destination, subDestination, filename));
-
-            await MangaDownloader.downloadAsPdf(
-              leftSpace: leftSpace,
-              pages: pages,
-              extractor: mArgs.extractor,
-              ignoreIfFileExists: options.ignoreExistingFiles,
-              getDestination: ({
-                required final String mimeType,
-              }) {
-                filePath = argTemplates.replace('$filePath.$mimeType');
-                _printFilePath(filePath);
-                return filePath;
-              },
-            );
-            break;
-
-          case _DownloadFormat.image:
-            filePath =
-                argTemplates.replace(path.join(destination, subDestination));
-            _printFilePath(filePath);
-
-            if (options.ignoreExistingFiles &&
-                await Directory(filePath).exists()) {
-              break;
-            }
-
-            await MangaDownloader.downloadAsImages(
-              leftSpace: leftSpace,
-              pages: pages,
-              extractor: mArgs.extractor,
-              getDestination: ({
-                required final String mimeType,
-                required final int pageNumber,
-              }) {
-                argTemplates.variables[CommandArgumentTemplates.kPageNumber] =
-                    pageNumber.toString();
-
-                return argTemplates.replace(
-                  path.join(
-                    filePath,
-                    '$filename.$mimeType',
-                  ),
+                final CommandArgumentTemplates argTemplates =
+                    globalArgTemplates.copyWith(
+                  <String, String>{
+                    CommandArgumentTemplates.kVolumeNumber: x.volume ?? '-',
+                    CommandArgumentTemplates.kChapterNumber: x.chapter,
+                    CommandArgumentTemplates.kChapterLocale:
+                        x.locale.toPrettyString(),
+                    CommandArgumentTemplates.kChapterLocaleCode:
+                        x.locale.toCodeString(),
+                  },
                 );
+
+                final List<PageInfo> pages =
+                    await mArgs.extractor.getChapter(x.url, x.locale);
+                String filePath;
+
+                switch (format) {
+                  case _DownloadFormat.pdf:
+                    argTemplates
+                            .variables[CommandArgumentTemplates.kPageNumber] =
+                        pages.length.toString();
+
+                    filePath =
+                        argTemplates.replace(path.join(folder, filename));
+
+                    await MangaDownloader.downloadAsPdf(
+                      pages: pages,
+                      extractor: mArgs.extractor,
+                      ignoreIfFileExists: options.ignoreExistingFiles,
+                      onProgress: ({
+                        required final double percent,
+                        final int? current,
+                        final int? total,
+                      }) {
+                        final String bar = buildGenericProgressBar(
+                          percent,
+                          current: current,
+                          total: total,
+                          width: stdout.terminalColumns - leftSpace.length,
+                        );
+                        logs[x] = '$prefix\n$leftSpace$bar';
+                      },
+                      getDestination: ({
+                        required final String mimeType,
+                      }) =>
+                          filePath = FSUtils.ensurePath(
+                        argTemplates.replace('$filePath.$mimeType'),
+                      ),
+                    );
+                    break;
+
+                  case _DownloadFormat.image:
+                    filePath = FSUtils.ensurePath(argTemplates.replace(folder));
+                    if (options.ignoreExistingFiles &&
+                        await Directory(filePath).exists()) {
+                      break;
+                    }
+
+                    await MangaDownloader.downloadAsImages(
+                      pages: pages,
+                      extractor: mArgs.extractor,
+                      onProgress: ({
+                        required final double percent,
+                        final int? current,
+                        final int? total,
+                      }) {
+                        final String bar = buildGenericProgressBar(
+                          percent,
+                          current: current,
+                          total: total,
+                          width: stdout.terminalColumns - leftSpace.length,
+                        );
+                        logs[x] = '$prefix\n$leftSpace$bar';
+                      },
+                      getDestination: ({
+                        required final String mimeType,
+                        required final int pageNumber,
+                      }) {
+                        argTemplates.variables[CommandArgumentTemplates
+                            .kPageNumber] = pageNumber.toString();
+                        return FSUtils.ensurePath(
+                          argTemplates.replace(
+                            path.join(filePath, '$filename.$mimeType'),
+                          ),
+                        );
+                      },
+                    );
+                    break;
+                }
+
+                logs[x] =
+                    '$prefix\n${leftSpace}Output: ${Dye.dye(filePath, 'lightCyan/underline')}';
+
+                if (options.read) {
+                  final String fExecutable = getFileSystemExecutable();
+                  logs[x] =
+                      '${logs[x]}\n${leftSpace}Opening using ${Dye.dye(fExecutable, 'lightCyan')}.';
+                  await Process.start(
+                    fExecutable,
+                    <String>[filePath],
+                    mode: ProcessStartMode.detached,
+                  );
+                }
               },
-            );
-            break;
-        }
+            )
+            .toList(),
+        concurrency: concurrency,
+      );
 
-        stdout.write('\r');
-
-        if (options.read) {
-          final String fExecutable = getFileSystemExecutable();
-          print(
-            '${leftSpace}Opening ${Dye.dye('chapter ${x.chapter}', 'lightCyan')} in ${Dye.dye(fExecutable, 'lightCyan')}.',
-          );
-          await Process.start(
-            fExecutable,
-            <String>[filePath],
-            mode: ProcessStartMode.detached,
-          );
-        }
-      }
+      await tasks.asFuture();
+      logTimer.cancel();
+      logFn();
     }
   }
 }

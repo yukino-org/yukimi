@@ -6,7 +6,12 @@ import 'package:tenka/tenka.dart';
 import 'package:utilx/utils.dart';
 import '../../utils/console.dart';
 import '../../utils/others.dart';
-import '../../utils/progress_bar.dart';
+
+typedef OnProgressFn = void Function({
+  required double percent,
+  int? current,
+  int? total,
+});
 
 typedef GetPdfDestinationFn = String Function({
   required String mimeType,
@@ -24,16 +29,13 @@ class MangaDownloader {
   static Future<bool> downloadAsImages({
     required final List<PageInfo> pages,
     required final MangaExtractor extractor,
-    required final String leftSpace,
+    required final OnProgressFn onProgress,
     required final GetImageDestinationFn getDestination,
   }) async {
-    const ProgressBar bar = ProgressBar();
-
     final List<TwinTuple<List<int>, String>> data = await _download(
       pages: pages,
       extractor: extractor,
-      leftSpace: leftSpace,
-      bar: bar,
+      onProgress: onProgress,
       onData: (final DLResponse res, final List<int> data) =>
           TwinTuple<List<int>, String>(
         data,
@@ -57,15 +59,14 @@ class MangaDownloader {
       i++;
     }
 
-    bar.end();
     return result;
   }
 
   static Future<bool> downloadAsPdf({
     required final List<PageInfo> pages,
     required final MangaExtractor extractor,
-    required final String leftSpace,
     required final bool ignoreIfFileExists,
+    required final OnProgressFn onProgress,
     required final GetPdfDestinationFn getDestination,
   }) async {
     final File file = File(getDestination(mimeType: 'pdf'));
@@ -73,13 +74,10 @@ class MangaDownloader {
       return false;
     }
 
-    const ProgressBar bar = ProgressBar();
-
     final List<List<int>> data = await _download(
       pages: pages,
       extractor: extractor,
-      leftSpace: leftSpace,
-      bar: bar,
+      onProgress: onProgress,
       onData: (final DLResponse res, final List<int> data) => data,
     );
 
@@ -99,27 +97,23 @@ class MangaDownloader {
 
     await FSUtils.ensureFile(file);
     await file.writeAsBytes(await document.save());
-
-    bar.end();
     return true;
   }
 
   static Future<List<T>> _download<T>({
     required final List<PageInfo> pages,
     required final MangaExtractor extractor,
-    required final String leftSpace,
-    required final ProgressBar bar,
+    required final OnProgressFn onProgress,
     required final T Function(DLResponse, List<int>) onData,
   }) async {
     int current = 0;
     final int total = pages.length;
     void incrementBar() {
       current++;
-      bar.set(
-        (current / total) * 100,
+      onProgress(
+        percent: (current / total) * 100,
         current: onlyIfAboveZero(current),
         total: onlyIfAboveZero(total),
-        prefix: leftSpace,
       );
     }
 

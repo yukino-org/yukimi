@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:tenka/tenka.dart';
 import 'package:utilx/locale.dart';
+import 'package:utilx/utils.dart';
 import '../../core/commander.dart';
 import '../../core/database/cache.dart';
 import '../../core/database/settings.dart';
@@ -12,6 +14,7 @@ import '../../utils/console.dart';
 import '../../utils/content_range.dart';
 import '../../utils/custom_args.dart';
 import '../../utils/exceptions.dart';
+import '../../utils/io.dart';
 import '../../utils/others.dart';
 import '_utils.dart';
 
@@ -27,7 +30,7 @@ class _Options extends CommandOptions {
 
   static const String kPlay = 'play';
   static const String kPlayAbbr = 'p';
-  static const List<String> kPlayAliases = <String>['stream'];
+  static const List<String> kPlayAliases = <String>['stream', 'watch'];
   bool get play => get<bool>(kPlay);
 
   static const String kEpisodes = 'episodes';
@@ -80,6 +83,14 @@ class _Options extends CommandOptions {
   static const String kFilterSourcesBy = 'filter-sources-by';
   static const List<String> kFilterSourcesByAliases = <String>['fsb'];
   String? get filterSourcesBy => getNullable(kFilterSourcesBy);
+
+  static const String kDownloaderConcurrency = 'downloader-concurrency';
+  static const List<String> kDownloaderConcurrencyAliases = <String>[
+    'download-concurrency',
+    'dlr-conc',
+    'conc'
+  ];
+  int? get downloaderConcurrency => getNullable<int>(kDownloaderConcurrency);
 }
 
 class AnimeInfoCommand extends Command<void> {
@@ -139,6 +150,10 @@ class AnimeInfoCommand extends Command<void> {
       ..addOption(
         _Options.kFilterSourcesBy,
         aliases: _Options.kFilterSourcesByAliases,
+      )
+      ..addOption(
+        _Options.kDownloaderConcurrency,
+        aliases: _Options.kDownloaderConcurrencyAliases,
       );
   }
 
@@ -192,8 +207,9 @@ class AnimeInfoCommand extends Command<void> {
     final ContentRange? range = options.episodes != null
         ? ContentRange.parse(
             options.episodes!,
-            allowed:
-                info.episodes.map((final EpisodeInfo x) => x.episode).toList(),
+            allowed: info.episodes
+                .map((final EpisodeInfo x) => double.parse(x.episode))
+                .toList(),
           )
         : null;
 
@@ -227,7 +243,7 @@ class AnimeInfoCommand extends Command<void> {
     for (final EpisodeInfo x in info.episodes) {
       final Dye i = Dye('${x.episode}.');
 
-      if (range?.contains(x.episode) ?? false) {
+      if (range?.contains(double.parse(x.episode)) ?? false) {
         i.apply('lightGreen');
         selectedEpisodes.add(x);
       }
@@ -236,13 +252,6 @@ class AnimeInfoCommand extends Command<void> {
         '$i ${Dye.dye(x.url, 'lightCyan/underline')} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
       );
     }
-
-    if (options.download && options.play) {
-      throw const CommandException(
-        '--${_Options.kDownload} and --${_Options.kPlay} are not supported together.',
-      );
-    }
-
     if (selectedEpisodes.isNotEmpty) {
       println();
 
@@ -276,143 +285,173 @@ class AnimeInfoCommand extends Command<void> {
           options.fallbackQuality ?? AppSettings.settings.animeFallbackQuality;
       final Quality fallbackQuality = QualityArgs.parse(_fallbackQuality);
 
-      for (final EpisodeInfo x in selectedEpisodes) {
+      final int concurrency = options.download
+          ? options.downloaderConcurrency ??
+              AppSettings.settings.downloaderConcurrency
+          : 1;
+
+      final CommandArgumentTemplates globalArgTemplates =
+          CommandArgumentTemplates.withDefaultTemplates(
+        <String, String>{
+          CommandArgumentTemplates.kAnimeTitle: info.title,
+          CommandArgumentTemplates.kAnimeURL: info.url,
+          CommandArgumentTemplates.kAnimeLocale: info.locale.toPrettyString(),
+          CommandArgumentTemplates.kAnimeLocaleCode: info.locale.toCodeString(),
+          CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
+          CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
+        },
+      );
+
+      final String folder = FSUtils.ensurePath(
+        globalArgTemplates.replace(path.join(destination, subDestination)),
+      );
+
+      if (options.download) {
         print(
-          '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
+          Dye.dye('Output: ', 'default').toString() +
+              Dye.dye(folder, 'lightCyan/underline').toString(),
         );
-
-        final List<EpisodeSource> sources =
-            await mArgs.extractor.getSources(x.url, x.locale);
-
-        if (AppManager.debug) {
-          printDebug('Available Sources:');
-          int i = 0;
-          for (final EpisodeSource x in sources) {
-            printDebug(
-              '  $i: ${x.url} (${x.quality.code}) [${x.headers.entries.map((final MapEntry<String, String> x) => '${x.key}: ${x.value}').join(', ')}]',
-            );
-            i++;
-          }
-        }
-
-        if (options.filterSourcesBy != null) {
-          final RegExp exp = RegExp(options.filterSourcesBy!);
-          sources.retainWhere((final EpisodeSource x) => exp.hasMatch(x.url));
-        }
-
-        final EpisodeSource? source = resolveEpisodeSource(
-          sources: sources,
-          preferredQuality: preferredQuality,
-          fallbackQuality: fallbackQuality,
-        );
-
-        if (source == null) {
-          throw CommandException(
-            'Unable to find appropriate source for episode ${x.episode}!',
-          );
-        }
-
-        final CommandArgumentTemplates argTemplates =
-            CommandArgumentTemplates.withDefaultTemplates(
-          <String, String>{
-            CommandArgumentTemplates.kAnimeTitle: info.title,
-            CommandArgumentTemplates.kAnimeURL: info.url,
-            CommandArgumentTemplates.kAnimeLocale: info.locale.toPrettyString(),
-            CommandArgumentTemplates.kAnimeLocaleCode:
-                info.locale.toCodeString(),
-            CommandArgumentTemplates.kEpisodeNumber: x.episode,
-            CommandArgumentTemplates.kEpisodeQuality: source.quality.code,
-            CommandArgumentTemplates.kEpisodeLocale:
-                source.locale.toPrettyString(),
-            CommandArgumentTemplates.kEpisodeLocaleCode:
-                source.locale.toCodeString(),
-            CommandArgumentTemplates.kModuleName: mArgs.metadata.name,
-            CommandArgumentTemplates.kModuleId: mArgs.metadata.id,
-          },
-        );
-
-        final String rDestination = argTemplates.replace(destination);
-        final String rSubDestination = argTemplates.replace(subDestination);
-        final String rFilename = argTemplates.replace(filename);
-
-        final String leftSpace = ' ' * (x.episode.length + 2);
-
-        print(
-          leftSpace +
-              Dye.dye('Quality: ', 'default').toString() +
-              Dye.dye(source.quality.code, 'lightCyan').toString(),
-        );
-        print(leftSpace + Dye.dye('Source: ', 'default').toString());
-        print(
-          leftSpace +
-              Dye.dye('  URL: ', 'default').toString() +
-              Dye.dye(source.url, 'magenta/underline').toString(),
-        );
-        if (source.headers.isNotEmpty) {
-          print(leftSpace + Dye.dye('  Headers: ', 'default').toString());
-          source.headers.forEach((final String k, final String v) {
-            print(
-              leftSpace +
-                  Dye.dye('    $k: ', 'default').toString() +
-                  Dye.dye(v, 'magenta').toString(),
-            );
-          });
-        }
-
-        if (options.play) {
-          final String? mpvPath =
-              AppSettings.settings.mpvPath ?? await getMpvPath();
-          if (mpvPath == null) {
-            throw const CommandException('No mpv path was set in settings');
-          }
-
-          println();
-          print(
-            'Opening ${Dye.dye('episode ${x.episode}', 'lightCyan')} in ${Dye.dye('mpv', 'lightCyan')}.',
-          );
-
-          await Process.start(
-            mpvPath,
-            <String>[
-              ...source.headers.entries.map(
-                (final MapEntry<String, String> x) =>
-                    '--http-header-fields-append=${x.key}:${x.value}',
-              ),
-              '--title=$rFilename',
-              source.url,
-            ],
-            mode: ProcessStartMode.detached,
-          );
-        }
-
-        if (options.download) {
-          await AnimeDownloader.download(
-            leftSpace: leftSpace,
-            url: source.url,
-            headers: source.headers,
-            ignoreIfFileExists: options.ignoreExistingFiles,
-            getDestination: ({
-              required final String mimeType,
-            }) {
-              final String filePath = path.join(
-                rDestination,
-                rSubDestination,
-                '$rFilename.$mimeType',
-              );
-
-              print(
-                leftSpace +
-                    Dye.dye('Output: ', 'default').toString() +
-                    Dye.dye(filePath, 'lightCyan/underline').toString(),
-              );
-
-              return filePath;
-            },
-          );
-
-          stdout.write('\r');
-        }
+        println();
       }
+
+      const String leftSpace = '   ';
+      final Map<EpisodeInfo, String> logs = <EpisodeInfo, String>{};
+      int prevLogLines = 0;
+
+      void logFn() {
+        final String line = logs.values.map(getPaddedPrintText).join('\n');
+        print(AnsiCodes.moveCursorUp(prevLogLines));
+        print(line);
+        prevLogLines = countConsoleTextLines(line) + 1;
+      }
+
+      final Timer logTimer = Timer.periodic(
+        const Duration(milliseconds: 500),
+        (final Timer _) => logFn(),
+      );
+
+      final QueuedRunner<void> tasks = QueuedRunner<void>(
+        selectedEpisodes
+            .map(
+              (final EpisodeInfo x) => () async {
+                final StringBuffer prefix = StringBuffer(
+                  '${Dye.dye('${x.episode}.', 'lightGreen')} Episode ${x.episode} ${Dye.dye('[${x.locale.toPrettyString(appendCode: true)}]', 'magenta')}',
+                );
+                logs[x] =
+                    '$prefix (Status: ${Dye.dye('processing', 'magenta')})';
+
+                final List<EpisodeSource> sources =
+                    await mArgs.extractor.getSources(x.url, x.locale);
+
+                if (options.filterSourcesBy != null) {
+                  final RegExp exp = RegExp(options.filterSourcesBy!);
+                  sources.retainWhere(
+                    (final EpisodeSource x) => exp.hasMatch(x.url),
+                  );
+                }
+
+                final EpisodeSource? source = resolveEpisodeSource(
+                  sources: sources,
+                  preferredQuality: preferredQuality,
+                  fallbackQuality: fallbackQuality,
+                );
+
+                if (source == null) {
+                  throw CommandException(
+                    'Unable to find appropriate source for episode ${x.episode}!',
+                  );
+                }
+
+                final CommandArgumentTemplates argTemplates =
+                    globalArgTemplates.copyWith(
+                  <String, String>{
+                    CommandArgumentTemplates.kEpisodeNumber: x.episode,
+                    CommandArgumentTemplates.kEpisodeQuality:
+                        source.quality.code,
+                    CommandArgumentTemplates.kEpisodeLocale:
+                        source.locale.toPrettyString(),
+                    CommandArgumentTemplates.kEpisodeLocaleCode:
+                        source.locale.toCodeString(),
+                  },
+                );
+
+                prefix.write(' (${Dye.dye(source.quality.code, 'lightCyan')})');
+                logs[x] = prefix.toString();
+
+                final String rFilename = argTemplates.replace(filename);
+                String? filePath;
+
+                if (options.download) {
+                  await AnimeDownloader.download(
+                    url: source.url,
+                    headers: source.headers,
+                    ignoreIfFileExists: options.ignoreExistingFiles,
+                    onProgress: ({
+                      required final double percent,
+                      final int? current,
+                      final int? total,
+                    }) {
+                      final String bar = buildDownloadProgressBar(
+                        percent,
+                        currentBytes: current,
+                        totalBytes: total,
+                        width: stdout.terminalColumns - leftSpace.length,
+                      );
+                      logs[x] = '$prefix\n$leftSpace$bar';
+                    },
+                    getDestination: ({
+                      required final String mimeType,
+                    }) =>
+                        filePath = path.join(
+                      folder,
+                      '$rFilename.$mimeType',
+                    ),
+                  );
+
+                  logs[x] =
+                      '$prefix\n${leftSpace}Output: ${Dye.dye(filePath!, 'lightCyan/underline')}';
+                }
+
+                if (options.play) {
+                  final String? mpvPath =
+                      AppSettings.settings.mpvPath ?? await getMpvPath();
+                  if (mpvPath == null) {
+                    throw const CommandException(
+                      'No mpv path was set in settings',
+                    );
+                  }
+
+                  logs[x] =
+                      '${logs[x]}\nOpening ${Dye.dye('episode ${x.episode}', 'lightCyan')} in ${Dye.dye('mpv', 'lightCyan')}.';
+
+                  await Process.start(
+                    mpvPath,
+                    filePath != null
+                        ? <String>[filePath!]
+                        : <String>[
+                            '--title=$rFilename',
+                            if (filePath != null)
+                              filePath!
+                            else ...<String>[
+                              ...source.headers.entries.map(
+                                (final MapEntry<String, String> x) =>
+                                    '--http-header-fields-append=${x.key}:${x.value}',
+                              ),
+                              source.url,
+                            ]
+                          ],
+                    mode: ProcessStartMode.detached,
+                  );
+                }
+              },
+            )
+            .toList(),
+        concurrency: concurrency,
+      );
+
+      await tasks.asFuture();
+      logTimer.cancel();
+      logFn();
     }
   }
 }

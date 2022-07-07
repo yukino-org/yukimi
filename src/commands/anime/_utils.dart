@@ -5,7 +5,12 @@ import 'package:tenka/tenka.dart';
 import 'package:utilx/utils.dart';
 import '../../utils/custom_args.dart';
 import '../../utils/others.dart';
-import '../../utils/progress_bar.dart';
+
+typedef OnProgressFn = void Function({
+  required double percent,
+  int? current,
+  int? total,
+});
 
 typedef GetDestinationFn = String Function({
   required String mimeType,
@@ -15,8 +20,8 @@ class AnimeDownloader {
   static Future<bool> download({
     required final String url,
     required final Map<String, String> headers,
-    required final String leftSpace,
     required final bool ignoreIfFileExists,
+    required final OnProgressFn onProgress,
     required final GetDestinationFn getDestination,
   }) async {
     final Downloader<DLProvider> downloader =
@@ -41,18 +46,15 @@ class AnimeDownloader {
     final FileDLResponse fRes =
         await downloader.downloadToFileFromDLResponse(dRes, file);
 
-    const ProgressBar bar = ProgressBar();
     fRes.progress.listen((final DLProgress progress) {
-      bar.set(
-        progress.percent,
+      onProgress(
+        percent: progress.percent,
         current: onlyIfAboveZero(progress.current),
         total: onlyIfAboveZero(progress.total),
-        prefix: leftSpace,
       );
     });
 
     await fRes.asFuture();
-    bar.end();
     return true;
   }
 
