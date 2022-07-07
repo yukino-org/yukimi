@@ -5,38 +5,39 @@ class ContentRange {
 
   factory ContentRange.parse(
     final List<String> args, {
-    required final List<String> allowed,
+    required final List<double> allowed,
   }) {
-    final List<String> result = <String>[];
+    final List<double> result = <double>[];
 
-    final int first = allowed.isNotEmpty ? int.parse(allowed.first) : 0;
-    final int last = allowed.isNotEmpty ? int.parse(allowed.last) : 0;
+    final double first = allowed.isNotEmpty ? allowed.first : 0;
+    final double last = allowed.isNotEmpty ? allowed.last : 0;
 
     for (final String x in args) {
       final List<String> splitted = x.split(RegExp(r'\.{2,3}'));
 
       switch (splitted.length) {
         case 1:
-          result.add(
-            _parseExpression(splitted.first, first: first, last: last)
-                .toString(),
-          );
+          result
+              .add(_parseExpression(splitted.first, first: first, last: last));
           break;
 
         case 2:
-          final int a =
+          final double a =
               _parseExpression(splitted.first, first: first, last: last);
-          final int b =
+          final double b =
               _parseExpression(splitted.last, first: first, last: last);
-          final int range = b - a + 1;
+          final double range = b - a + 1;
 
           if (range < 1) {
             throw CommandException('Invalid range: $x (Bad Range)');
           }
 
-          result.addAll(
-            List<String>.generate(range, (final int i) => (a + i).toString()),
-          );
+          final int start = allowed.indexWhere((final double x) => x >= a);
+          final int end = allowed.lastIndexWhere((final double x) => x <= b);
+
+          if (start != -1 && end != -1) {
+            result.addAll(allowed.sublist(start, end + 1));
+          }
           break;
 
         default:
@@ -46,19 +47,19 @@ class ContentRange {
 
     return ContentRange._(
       args,
-      result.where((final String x) => allowed.contains(x)).toList(),
+      result.where((final double x) => allowed.contains(x)).toList(),
     );
   }
 
   final List<String> args;
-  final List<String> values;
+  final List<double> values;
 
-  bool contains(final String value) => values.contains(value);
+  bool contains(final double value) => values.contains(value);
 
-  static int _parseValue(
+  static double _parseValue(
     final String expression, {
-    required final int first,
-    required final int last,
+    required final double first,
+    required final double last,
   }) {
     switch (expression) {
       case 'first':
@@ -68,14 +69,14 @@ class ContentRange {
         return last;
 
       default:
-        return int.parse(expression);
+        return double.parse(expression);
     }
   }
 
-  static int _parseExpression(
+  static double _parseExpression(
     final String expression, {
-    required final int first,
-    required final int last,
+    required final double first,
+    required final double last,
   }) {
     final RegExpMatch? match =
         RegExp(r'^(\w+)([+-])(\w+)$').firstMatch(expression);
@@ -83,8 +84,8 @@ class ContentRange {
       return _parseValue(expression, first: first, last: last);
     }
 
-    final int a = _parseValue(match.group(1)!, first: first, last: last);
-    final int b = _parseValue(match.group(3)!, first: first, last: last);
+    final double a = _parseValue(match.group(1)!, first: first, last: last);
+    final double b = _parseValue(match.group(3)!, first: first, last: last);
     final String op = match.group(2)!;
 
     switch (op) {
