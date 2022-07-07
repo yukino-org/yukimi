@@ -81,6 +81,14 @@ class _Options extends CommandOptions {
   static const String kIgnoreExistingFiles = 'ignore-existing-files';
   static const String kIgnoreExistingFilesAbbr = 'i';
   bool get ignoreExistingFiles => get<bool>(kIgnoreExistingFiles);
+
+  static const String kDownloaderConcurrency = 'downloader-concurrency';
+  static const List<String> kDownloaderConcurrencyAliases = <String>[
+    'download-concurrency',
+    'dlr-conc',
+    'conc'
+  ];
+  int? get downloaderConcurrency => getNullable<int>(kDownloaderConcurrency);
 }
 
 class MangaInfoCommand extends Command<void> {
@@ -133,6 +141,10 @@ class MangaInfoCommand extends Command<void> {
       ..addFlag(
         _Options.kIgnoreExistingFiles,
         abbr: _Options.kIgnoreExistingFilesAbbr,
+      )
+      ..addOption(
+        _Options.kDownloaderConcurrency,
+        aliases: _Options.kDownloaderConcurrencyAliases,
       );
   }
 
@@ -254,10 +266,17 @@ class MangaInfoCommand extends Command<void> {
           (options.download
               ? AppSettings.settings.mangaDownloadDestination
               : Paths.tmpDir);
+
       final String subDestinationTemplate = options.subDestination ??
           AppSettings.settings.mangaDownloadSubDestination;
+
       final String filenameTemplate =
           options.filename ?? AppSettings.settings.mangaDownloadFilename;
+
+      final int concurrency = options.download
+          ? options.downloaderConcurrency ??
+              AppSettings.settings.downloaderConcurrency
+          : 1;
 
       final String destination;
       final String subDestination;

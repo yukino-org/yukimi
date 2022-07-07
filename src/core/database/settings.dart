@@ -1,42 +1,66 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:tenka/tenka.dart';
+import 'package:utilx/utils.dart';
 import '../../config/paths.dart';
 import '../../utils/atomic_file.dart';
-import '../commander.dart';
+import '../../utils/custom_args.dart';
 
 abstract class AppSettingsKeys {
-  static const String kUsagePolicy = 'usagePolicy';
-  static const String kIgnoreSSLCertificate = 'ignoreSSLCertificate';
-  static const String kAnimePreferredQuality = 'animePreferredQuality';
-  static const String kAnimeFallbackQuality = 'animeFallbackQuality';
-  static const String kAnimeDownloadDestination = 'animeDownloadDestination';
-  static const String kAnimeDownloadSubDestination =
-      'animeDownloadSubDestination';
-  static const String kAnimeDownloadFilename = 'animeDownloadFilename';
-  static const String kMangaDownloadDestination = 'mangaDownloadDestination';
-  static const String kMangaDownloadSubDestination =
-      'mangaDownloadSubDestination';
-  static const String kMangaDownloadFilename = 'mangaDownloadFilename';
-  static const String kMpvPath = 'mpvPath';
+  static const StringCase kUsagePolicy = StringCase('usagePolicy');
+
+  static const StringCase kIgnoreSSLCertificate =
+      StringCase('ignoreSSLCertificate');
+
+  static const StringCase kAnimePreferredQuality =
+      StringCase('animePreferredQuality');
+
+  static const StringCase kAnimeFallbackQuality =
+      StringCase('animeFallbackQuality');
+
+  static const StringCase kAnimeDownloadDestination =
+      StringCase('animeDownloadDestination');
+
+  static const StringCase kAnimeDownloadSubDestination =
+      StringCase('animeDownloadSubDestination');
+
+  static const StringCase kAnimeDownloadFilename =
+      StringCase('animeDownloadFilename');
+
+  static const StringCase kMangaDownloadDestination =
+      StringCase('mangaDownloadDestination');
+
+  static const StringCase kMangaDownloadSubDestination =
+      StringCase('mangaDownloadSubDestination');
+
+  static const StringCase kMangaDownloadFilename =
+      StringCase('mangaDownloadFilename');
+
+  static const StringCase kMpvPath = StringCase('mpvPath');
+
+  static const StringCase kDownloaderConcurrency =
+      StringCase('downloaderConcurrency');
 }
 
 class AppSettings {
   AppSettings._({
-    this.usagePolicy = false,
-    this.ignoreSSLCertificate = false,
-    this.animePreferredQuality = '',
-    this.animeFallbackQuality = '',
-    this.animeDownloadDestination = '',
-    this.animeDownloadSubDestination = '',
-    this.animeDownloadFilename = '',
-    this.mangaDownloadDestination = '',
-    this.mangaDownloadSubDestination = '',
-    this.mangaDownloadFilename = '',
-    this.mpvPath,
+    required this.usagePolicy,
+    required this.ignoreSSLCertificate,
+    required this.animePreferredQuality,
+    required this.animeFallbackQuality,
+    required this.animeDownloadDestination,
+    required this.animeDownloadSubDestination,
+    required this.animeDownloadFilename,
+    required this.mangaDownloadDestination,
+    required this.mangaDownloadSubDestination,
+    required this.mangaDownloadFilename,
+    required this.mpvPath,
+    required this.downloaderConcurrency,
   });
 
   factory AppSettings.defaultSettings() => AppSettings._(
+        usagePolicy: false,
+        ignoreSSLCertificate: false,
         animePreferredQuality: Quality.get(Qualities.q_720p).code,
         animeFallbackQuality: Quality.get(Qualities.unknown).code,
         animeDownloadDestination:
@@ -51,41 +75,51 @@ class AppSettings {
             '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} (\${${CommandArgumentTemplates.kChapterLocaleCode}})',
         mangaDownloadFilename:
             '[\${${CommandArgumentTemplates.kModuleName}}] \${${CommandArgumentTemplates.kMangaTitle}} — Vol. \${${CommandArgumentTemplates.kVolumeNumber}} Ch. \${${CommandArgumentTemplates.kChapterNumber}}',
+        mpvPath: null,
+        downloaderConcurrency: 3,
       );
 
   factory AppSettings.fromJson(final Map<dynamic, dynamic> json) {
     final AppSettings d = AppSettings.defaultSettings();
 
     return AppSettings._(
-      usagePolicy: json[AppSettingsKeys.kUsagePolicy] as bool? ?? d.usagePolicy,
+      usagePolicy: json[AppSettingsKeys.kUsagePolicy.camelCase] as bool? ??
+          d.usagePolicy,
       ignoreSSLCertificate:
-          json[AppSettingsKeys.kIgnoreSSLCertificate] as bool? ??
+          json[AppSettingsKeys.kIgnoreSSLCertificate.camelCase] as bool? ??
               d.ignoreSSLCertificate,
       animePreferredQuality:
-          json[AppSettingsKeys.kAnimePreferredQuality] as String? ??
+          json[AppSettingsKeys.kAnimePreferredQuality.camelCase] as String? ??
               d.animePreferredQuality,
       animeFallbackQuality:
-          json[AppSettingsKeys.kAnimeFallbackQuality] as String? ??
+          json[AppSettingsKeys.kAnimeFallbackQuality.camelCase] as String? ??
               d.animeFallbackQuality,
       animeDownloadDestination:
-          json[AppSettingsKeys.kAnimeDownloadDestination] as String? ??
+          json[AppSettingsKeys.kAnimeDownloadDestination.camelCase]
+                  as String? ??
               d.animeDownloadDestination,
       animeDownloadSubDestination:
-          json[AppSettingsKeys.kAnimeDownloadSubDestination] as String? ??
+          json[AppSettingsKeys.kAnimeDownloadSubDestination.camelCase]
+                  as String? ??
               d.animeDownloadSubDestination,
       animeDownloadFilename:
-          json[AppSettingsKeys.kAnimeDownloadFilename] as String? ??
+          json[AppSettingsKeys.kAnimeDownloadFilename.camelCase] as String? ??
               d.animeDownloadFilename,
       mangaDownloadDestination:
-          json[AppSettingsKeys.kMangaDownloadDestination] as String? ??
+          json[AppSettingsKeys.kMangaDownloadDestination.camelCase]
+                  as String? ??
               d.mangaDownloadDestination,
       mangaDownloadSubDestination:
-          json[AppSettingsKeys.kMangaDownloadSubDestination] as String? ??
+          json[AppSettingsKeys.kMangaDownloadSubDestination.camelCase]
+                  as String? ??
               d.mangaDownloadSubDestination,
       mangaDownloadFilename:
-          json[AppSettingsKeys.kMangaDownloadFilename] as String? ??
+          json[AppSettingsKeys.kMangaDownloadFilename.camelCase] as String? ??
               d.mangaDownloadFilename,
-      mpvPath: json[AppSettingsKeys.kMpvPath] as String? ?? d.mpvPath,
+      mpvPath: json[AppSettingsKeys.kMpvPath.camelCase] as String? ?? d.mpvPath,
+      downloaderConcurrency:
+          json[AppSettingsKeys.kDownloaderConcurrency.camelCase] as int? ??
+              d.downloaderConcurrency,
     );
   }
 
@@ -100,21 +134,25 @@ class AppSettings {
   String mangaDownloadSubDestination;
   String mangaDownloadFilename;
   String? mpvPath;
+  int downloaderConcurrency;
 
   Map<dynamic, dynamic> toJson() => <dynamic, dynamic>{
-        AppSettingsKeys.kUsagePolicy: usagePolicy,
-        AppSettingsKeys.kIgnoreSSLCertificate: ignoreSSLCertificate,
-        AppSettingsKeys.kAnimePreferredQuality: animePreferredQuality,
-        AppSettingsKeys.kAnimeFallbackQuality: animeFallbackQuality,
-        AppSettingsKeys.kAnimeDownloadDestination: animeDownloadDestination,
-        AppSettingsKeys.kAnimeDownloadSubDestination:
+        AppSettingsKeys.kUsagePolicy.camelCase: usagePolicy,
+        AppSettingsKeys.kIgnoreSSLCertificate.camelCase: ignoreSSLCertificate,
+        AppSettingsKeys.kAnimePreferredQuality.camelCase: animePreferredQuality,
+        AppSettingsKeys.kAnimeFallbackQuality.camelCase: animeFallbackQuality,
+        AppSettingsKeys.kAnimeDownloadDestination.camelCase:
+            animeDownloadDestination,
+        AppSettingsKeys.kAnimeDownloadSubDestination.camelCase:
             animeDownloadSubDestination,
-        AppSettingsKeys.kAnimeDownloadFilename: animeDownloadFilename,
-        AppSettingsKeys.kMangaDownloadDestination: mangaDownloadDestination,
-        AppSettingsKeys.kMangaDownloadSubDestination:
+        AppSettingsKeys.kAnimeDownloadFilename.camelCase: animeDownloadFilename,
+        AppSettingsKeys.kMangaDownloadDestination.camelCase:
+            mangaDownloadDestination,
+        AppSettingsKeys.kMangaDownloadSubDestination.camelCase:
             mangaDownloadSubDestination,
-        AppSettingsKeys.kMangaDownloadFilename: mangaDownloadFilename,
-        AppSettingsKeys.kMpvPath: mpvPath,
+        AppSettingsKeys.kMangaDownloadFilename.camelCase: mangaDownloadFilename,
+        AppSettingsKeys.kMpvPath.camelCase: mpvPath,
+        AppSettingsKeys.kDownloaderConcurrency.camelCase: downloaderConcurrency,
       };
 
   static bool ready = false;

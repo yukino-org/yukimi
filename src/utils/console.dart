@@ -35,7 +35,7 @@ class Dye {
 
   static final Map<String, Styles> _styles = Styles.values.asMap().map(
         (final int i, final Styles x) => MapEntry<String, Styles>(
-          StringUtils.snakeToPascalCase(x.name.toLowerCase()),
+          StringCase(x.name.toLowerCase()).pascalCase,
           x,
         ),
       );

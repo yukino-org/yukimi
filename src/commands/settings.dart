@@ -24,53 +24,53 @@ class _Options extends CommandOptions {
   ];
   bool get resetAll => get<bool>(kResetAll);
 
-  static const String kIgnoreSSLCertificate =
-      AppSettingsKeys.kIgnoreSSLCertificate;
+  static final String kIgnoreSSLCertificate =
+      AppSettingsKeys.kIgnoreSSLCertificate.kebabCase;
   static const bool? kIgnoreSSLCertificateDefaultsTo = null;
   bool? get ignoreSSLCertificate => getNullable<bool>(kIgnoreSSLCertificate);
 
-  static const String kMpvPath = AppSettingsKeys.kMpvPath;
+  static final String kMpvPath = AppSettingsKeys.kMpvPath.kebabCase;
   String? get mpvPath => getNullable<String>(kMpvPath);
 
-  static const String kAnimeDownloadDestination =
-      AppSettingsKeys.kAnimeDownloadDestination;
+  static final String kAnimeDownloadDestination =
+      AppSettingsKeys.kAnimeDownloadDestination.kebabCase;
   String? get animeDownloadDestination =>
       getNullable<String>(kAnimeDownloadDestination);
 
-  static const String kAnimeDownloadSubDestination =
-      AppSettingsKeys.kAnimeDownloadSubDestination;
+  static final String kAnimeDownloadSubDestination =
+      AppSettingsKeys.kAnimeDownloadSubDestination.kebabCase;
   String? get animeDownloadSubDestination =>
       getNullable<String>(kAnimeDownloadSubDestination);
 
-  static const String kAnimeDownloadFilename =
-      AppSettingsKeys.kAnimeDownloadFilename;
+  static final String kAnimeDownloadFilename =
+      AppSettingsKeys.kAnimeDownloadFilename.kebabCase;
   String? get animeDownloadFilename =>
       getNullable<String>(kAnimeDownloadFilename);
 
-  static const String kMangaDownloadDestination =
-      AppSettingsKeys.kMangaDownloadDestination;
+  static final String kMangaDownloadDestination =
+      AppSettingsKeys.kMangaDownloadDestination.kebabCase;
   String? get mangaDownloadDestination =>
       getNullable<String>(kMangaDownloadDestination);
 
-  static const String kMangaDownloadSubDestination =
-      AppSettingsKeys.kMangaDownloadSubDestination;
+  static final String kMangaDownloadSubDestination =
+      AppSettingsKeys.kMangaDownloadSubDestination.kebabCase;
   String? get mangaDownloadSubDestination =>
       getNullable<String>(kMangaDownloadSubDestination);
 
-  static const String kMangaDownloadFilename =
-      AppSettingsKeys.kMangaDownloadFilename;
+  static final String kMangaDownloadFilename =
+      AppSettingsKeys.kMangaDownloadFilename.kebabCase;
   String? get mangaDownloadFilename =>
       getNullable<String>(kMangaDownloadFilename);
 
-  static const String kAnimePreferredQuality =
-      AppSettingsKeys.kAnimePreferredQuality;
+  static final String kAnimePreferredQuality =
+      AppSettingsKeys.kAnimePreferredQuality.kebabCase;
   static final List<String> kAnimePreferredQualityAllowed =
       QualityArgs.allQualityCodes;
   String? get animePreferredQuality =>
       getNullable<String>(kAnimePreferredQuality);
 
-  static const String kAnimeFallbackQuality =
-      AppSettingsKeys.kAnimeFallbackQuality;
+  static final String kAnimeFallbackQuality =
+      AppSettingsKeys.kAnimeFallbackQuality.kebabCase;
   static final List<String> kAnimeFallbackQualityAllowed =
       kAnimePreferredQualityAllowed;
   String? get animeFallbackQuality =>

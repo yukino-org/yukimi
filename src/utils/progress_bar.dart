@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'console.dart';
 
 class ProgressBar {
